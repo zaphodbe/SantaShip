@@ -41,6 +41,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     fileSelection = new QItemSelectionModel(fileModel);
     ui->listView->setSelectionModel(fileSelection);
+
+    connect(fileSelection, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(OnSelectionChanged(QItemSelection,QItemSelection)));
+
 }
 
 MainWindow::~MainWindow()
@@ -56,4 +59,40 @@ void MainWindow::OnDir()
     fileModel->setRootPath(directory);
 
     ui->listView->setRootIndex(fileModel->index(directory));
+}
+
+void MainWindow::OnSmaller()
+{
+    QSize size = ui->listView->iconSize();
+
+    size.setWidth(size.width() / 2);
+    size.setHeight(size.width() * 3 / 5);
+
+    ui->listView->setIconSize(size);
+
+    ui->pushButtonBigger->setEnabled(true);
+    if (size.width() <= 125) {
+        ui->pushButtonSmaller->setEnabled(false);
+    }
+}
+
+void MainWindow::OnBigger()
+{
+    QSize size = ui->listView->iconSize();
+
+    size.setWidth(size.width() * 2);
+    size.setHeight(size.width() * 3 / 5);
+
+    ui->listView->setIconSize(size);
+
+    ui->pushButtonSmaller->setEnabled(true);
+    if (size.width() >= 500) {
+        ui->pushButtonBigger->setEnabled(false);
+    }
+}
+
+void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection deselected)
+{
+    qDebug() << "selected" << selected;
+    qDebug() << "deselected" << deselected;
 }

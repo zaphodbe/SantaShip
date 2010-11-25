@@ -20,15 +20,9 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
      <widget class="QSplitter" name="splitter">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -41,8 +35,8 @@
           </property>
           <property name="iconSize">
            <size>
-            <width>250</width>
-            <height>150</height>
+            <width>125</width>
+            <height>75</height>
            </size>
           </property>
           <property name="resizeMode">
@@ -60,11 +54,32 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButtonDir">
-          <property name="text">
-           <string>Change Directory</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="pushButtonDir">
+            <property name="text">
+             <string>Change Directory</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonBigger">
+            <property name="text">
+             <string>+</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonSmaller">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -112,8 +127,42 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButtonBigger</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnBigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>393</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>195</x>
+     <y>412</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButtonSmaller</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnSmaller()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>249</x>
+     <y>391</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>246</x>
+     <y>412</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>OnDir()</slot>
+  <slot>OnBigger()</slot>
+  <slot>OnSmaller()</slot>
  </slots>
 </ui>

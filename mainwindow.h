@@ -28,6 +28,9 @@ signals:
 
 public slots:
     void OnDir();
+    void OnSmaller();
+    void OnBigger();
+    void OnSelectionChanged(QItemSelection selected,QItemSelection deselected);
 
 private:
     Ui::MainWindow          *ui;
