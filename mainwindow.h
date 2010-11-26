@@ -9,6 +9,9 @@
 #include <QFileInfo>
 #include <QFileSystemModel>
 #include <QItemSelectionModel>
+#include <QPrinter>
+#include <QPrintDialog>
+#include <QGraphicsScene>
 
 #include "filethumbnailprovider.h"
 
@@ -31,12 +34,16 @@ public slots:
     void OnSmaller();
     void OnBigger();
     void OnSelectionChanged(QItemSelection selected,QItemSelection deselected);
+    void on_actionAdd_Printer_triggered(bool checked);
+    void on_actionRemove_Printer_triggered(bool checked);
 
 private:
     Ui::MainWindow          *ui;
     QFileSystemModel        *fileModel;
     QItemSelectionModel     *fileSelection;
     QFileThumbnailProvider  *fileThumbnail;
+    QList<QPrinter*>         printerList;
+    QGraphicsScene          *graphicsScene;
 };
 
 #endif // MAINWINDOW_H

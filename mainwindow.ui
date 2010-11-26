@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
-    <height>440</height>
+    <width>507</width>
+    <height>352</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -84,6 +84,9 @@
        </layout>
       </widget>
       <widget class="QGraphicsView" name="graphicsView"/>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout_2"/>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -93,10 +96,18 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>532</width>
+     <width>507</width>
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuSetup">
+    <property name="title">
+     <string>&amp;Setup</string>
+    </property>
+    <addaction name="actionAdd_Printer"/>
+    <addaction name="actionRemove_Printer"/>
+   </widget>
+   <addaction name="menuSetup"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -107,6 +118,16 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionAdd_Printer">
+   <property name="text">
+    <string>&amp;Add Printer</string>
+   </property>
+  </action>
+  <action name="actionRemove_Printer">
+   <property name="text">
+    <string>&amp;Remove Printer</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
@@ -164,5 +185,6 @@
   <slot>OnDir()</slot>
   <slot>OnBigger()</slot>
   <slot>OnSmaller()</slot>
+  <slot>OnMenu(QAction*)</slot>
  </slots>
 </ui>

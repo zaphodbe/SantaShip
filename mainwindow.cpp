@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QFileDialog>
+#include <QGraphicsItem>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
@@ -44,6 +45,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(fileSelection, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(OnSelectionChanged(QItemSelection,QItemSelection)));
 
+    graphicsScene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(graphicsScene);
 }
 
 MainWindow::~MainWindow()
@@ -93,6 +96,37 @@ void MainWindow::OnBigger()
 
 void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection deselected)
 {
-    qDebug() << "selected" << selected;
-    qDebug() << "deselected" << deselected;
+    int i;
+    //qDebug() << "selected" << selected;
+    //qDebug() << "deselected" << deselected;
+    QModelIndexList indexList = fileSelection->selectedIndexes();
+
+    // Empty the scene
+    graphicsScene->clear();
+    //graphicsScene->addText(tr("Hello World!"));
+
+    // Add each selected image
+    for (i = 0; i < indexList.length(); i++) {
+        qDebug() << "selection" << i << fileModel->fileInfo(indexList.at(i)).absoluteFilePath();
+        QPixmap pixmap(fileModel->fileInfo(indexList.at(i)).absoluteFilePath());
+        QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
+        //item->setPos(0,0);
+        //item->setVisible(true);
+    }
+}
+
+void MainWindow::on_actionAdd_Printer_triggered(bool checked)
+{
+    //qDebug() << __FUNCTION__;
+    QPrinter *printer = new QPrinter();
+    QPrintDialog printDialog(printer, this);
+    if (printDialog.exec() == QDialog::Accepted) {
+        qDebug() << "added" << printer->printerName() << printer->resolution();
+        printerList.append(printer);
+    }
+}
+
+void MainWindow::on_actionRemove_Printer_triggered(bool checked)
+{
+    //qDebug() << __FUNCTION__;
 }

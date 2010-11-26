@@ -10,7 +10,7 @@ QFileThumbnailProvider::QFileThumbnailProvider()
 
 QIcon   QFileThumbnailProvider::icon(IconType type) const
 {
-    qDebug() << "icon(IconType type)" << type;
+    //qDebug() << "icon(IconType type)" << type;
     return QFileIconProvider::icon(type);
 }
 
@@ -20,13 +20,13 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
     QIcon icon(info.absoluteFilePath());
     return icon;
 #else
-    qDebug() << "icon(const QFileInfo &info)" << info.fileName();
+    //qDebug() << "icon(const QFileInfo &info)" << info.fileName();
     return QFileIconProvider::icon(info);
 #endif
 }
 
 QString QFileThumbnailProvider::type(const QFileInfo &info) const
 {
-    qDebug() << "type(const QFileInfo &info)" << info.fileName();
+    //qDebug() << "type(const QFileInfo &info)" << info.fileName();
     return QFileIconProvider::type(info);
 }
