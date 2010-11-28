@@ -12,6 +12,8 @@
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QGraphicsScene>
+#include <QPushButton>
+#include <QSignalMapper>
 
 #include "filethumbnailprovider.h"
 
@@ -34,6 +36,7 @@ public slots:
     void OnSmaller();
     void OnBigger();
     void OnSelectionChanged(QItemSelection selected,QItemSelection deselected);
+    void OnAddPrinter();
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionRemove_Printer_triggered(bool checked);
 
@@ -43,7 +46,9 @@ private:
     QItemSelectionModel     *fileSelection;
     QFileThumbnailProvider  *fileThumbnail;
     QList<QPrinter*>         printerList;
+    QList<QPushButton*>      printButtonList;
     QGraphicsScene          *graphicsScene;
+    QSignalMapper           *signalMapper;
 };
 
 #endif // MAINWINDOW_H

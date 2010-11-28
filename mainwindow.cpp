@@ -47,10 +47,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     graphicsScene = new QGraphicsScene(this);
     ui->graphicsView->setScene(graphicsScene);
+
+    signalMapper = new QSignalMapper(this);
 }
 
 MainWindow::~MainWindow()
 {
+    delete signalMapper;
+    delete graphicsScene;
+    delete fileSelection;
+    delete fileModel;
+    delete fileThumbnail;
     delete ui;
 }
 
@@ -115,7 +122,7 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
     }
 }
 
-void MainWindow::on_actionAdd_Printer_triggered(bool checked)
+void MainWindow::OnAddPrinter()
 {
     //qDebug() << __FUNCTION__;
     QPrinter *printer = new QPrinter();
@@ -123,7 +130,20 @@ void MainWindow::on_actionAdd_Printer_triggered(bool checked)
     if (printDialog.exec() == QDialog::Accepted) {
         qDebug() << "added" << printer->printerName() << printer->resolution();
         printerList.append(printer);
+
+        QPushButton *button = new QPushButton(printer->printerName());
+        printButtonList.append(button);
+        ui->verticalLayoutPrintButtons->addWidget(button);
+
+        //signalMapper->setMapping(button,);
+        //connect(button, SIGNAL())
     }
+}
+
+void MainWindow::on_actionAdd_Printer_triggered(bool checked)
+{
+    //qDebug() << __FUNCTION__;
+    OnAddPrinter();
 }
 
 void MainWindow::on_actionRemove_Printer_triggered(bool checked)
