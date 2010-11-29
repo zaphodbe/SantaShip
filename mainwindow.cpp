@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->graphicsView->setScene(graphicsScene);
 
     signalMapper = new QSignalMapper(this);
+    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(OnPrint(int)));
 }
 
 MainWindow::~MainWindow()
@@ -60,6 +61,10 @@ MainWindow::~MainWindow()
     delete fileThumbnail;
     delete ui;
 }
+
+/*
+ * Normal Event driven slots.
+ */
 
 void MainWindow::OnDir()
 {
@@ -110,11 +115,10 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
 
     // Empty the scene
     graphicsScene->clear();
-    //graphicsScene->addText(tr("Hello World!"));
 
     // Add each selected image
     for (i = 0; i < indexList.length(); i++) {
-        qDebug() << "selection" << i << fileModel->fileInfo(indexList.at(i)).absoluteFilePath();
+        //qDebug() << "selection" << i << fileModel->fileInfo(indexList.at(i)).absoluteFilePath();
         QPixmap pixmap(fileModel->fileInfo(indexList.at(i)).absoluteFilePath());
         QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
         //item->setPos(0,0);
@@ -128,18 +132,31 @@ void MainWindow::OnAddPrinter()
     QPrinter *printer = new QPrinter();
     QPrintDialog printDialog(printer, this);
     if (printDialog.exec() == QDialog::Accepted) {
-        qDebug() << "added" << printer->printerName() << printer->resolution();
+        qDebug() << "adding" << printer->printerName() << printer->resolution();
         printerList.append(printer);
 
         QPushButton *button = new QPushButton(printer->printerName());
         printButtonList.append(button);
         ui->verticalLayoutPrintButtons->addWidget(button);
 
-        //signalMapper->setMapping(button,);
-        //connect(button, SIGNAL())
+        signalMapper->setMapping(button,printButtonList.length() - 1);
+        connect(button, SIGNAL(clicked()), signalMapper, SLOT(map()));
     }
 }
 
+void MainWindow::OnRemovePrinter()
+{
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::OnPrint(int index)
+{
+    qDebug() << __FUNCTION__ << printerList.at(index)->printerName();
+}
+
+/*
+ * Automatically connected action driven slots
+ */
 void MainWindow::on_actionAdd_Printer_triggered(bool checked)
 {
     //qDebug() << __FUNCTION__;
@@ -149,4 +166,5 @@ void MainWindow::on_actionAdd_Printer_triggered(bool checked)
 void MainWindow::on_actionRemove_Printer_triggered(bool checked)
 {
     //qDebug() << __FUNCTION__;
+    OnRemovePrinter();
 }

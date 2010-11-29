@@ -37,6 +37,8 @@ public slots:
     void OnBigger();
     void OnSelectionChanged(QItemSelection selected,QItemSelection deselected);
     void OnAddPrinter();
+    void OnRemovePrinter();
+    void OnPrint(int index);
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionRemove_Printer_triggered(bool checked);
 
