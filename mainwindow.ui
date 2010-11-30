@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>507</width>
-    <height>352</height>
+    <width>825</width>
+    <height>354</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QListView" name="listView">
@@ -83,7 +83,20 @@
         </item>
        </layout>
       </widget>
-      <widget class="QGraphicsView" name="graphicsView"/>
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayoutGraphics">
+        <item>
+         <widget class="QGraphicsView" name="graphicsView"/>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayoutLayoutButtons">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinAndMaxSize</enum>
+          </property>
+         </layout>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="verticalLayoutWidget">
        <layout class="QVBoxLayout" name="verticalLayoutPrintButtons">
         <item>
@@ -104,7 +117,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>507</width>
+     <width>825</width>
      <height>22</height>
     </rect>
    </property>
@@ -195,12 +208,12 @@
    <slot>OnAddPrinter()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>465</x>
-     <y>177</y>
+     <x>785</x>
+     <y>180</y>
     </hint>
     <hint type="destinationlabel">
-     <x>500</x>
-     <y>145</y>
+     <x>818</x>
+     <y>148</y>
     </hint>
    </hints>
   </connection>
@@ -211,5 +224,6 @@
   <slot>OnSmaller()</slot>
   <slot>OnMenu(QAction*)</slot>
   <slot>OnAddPrinter()</slot>
+  <slot>OnLayout()</slot>
  </slots>
 </ui>

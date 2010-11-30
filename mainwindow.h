@@ -39,6 +39,7 @@ public slots:
     void OnAddPrinter();
     void OnRemovePrinter();
     void OnPrint(int index);
+    void OnLayout(QString layout);
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionRemove_Printer_triggered(bool checked);
 
@@ -50,7 +51,10 @@ private:
     QList<QPrinter*>         printerList;
     QList<QPushButton*>      printButtonList;
     QGraphicsScene          *graphicsScene;
-    QSignalMapper           *signalMapper;
+    QSignalMapper           *signalMapperPrint;
+    QSignalMapper           *signalMapperLayout;
+
+    void LoadImages();
 };
 
 #endif // MAINWINDOW_H
