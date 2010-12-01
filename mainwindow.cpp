@@ -68,32 +68,33 @@ MainWindow::MainWindow(QWidget *parent) :
     // ToDo load these from discription files
     QPushButton *button;
     button = new QPushButton(QString("1 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button);
+    ui->gridLayoutLayoutButtons->addWidget(button,0,0);
     signalMapperLayout->setMapping(button,button->text());
     connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
+    layout = button->text(); // Set the default layout.
 
     button = new QPushButton(QString("2 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button);
+    ui->gridLayoutLayoutButtons->addWidget(button,0,1);
     signalMapperLayout->setMapping(button,button->text());
     connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
 
     button = new QPushButton(QString("3 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button);
+    ui->gridLayoutLayoutButtons->addWidget(button,0,2);
     signalMapperLayout->setMapping(button,button->text());
     connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
 
     button = new QPushButton(QString("4 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button);
+    ui->gridLayoutLayoutButtons->addWidget(button,0,3);
     signalMapperLayout->setMapping(button,button->text());
     connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
 
     button = new QPushButton(QString("8 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button);
+    ui->gridLayoutLayoutButtons->addWidget(button,0,4);
     signalMapperLayout->setMapping(button,button->text());
     connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
 
     button = new QPushButton(QString("32 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button);
+    ui->gridLayoutLayoutButtons->addWidget(button,0,5);
     signalMapperLayout->setMapping(button,button->text());
     connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
 }
@@ -155,17 +156,29 @@ void MainWindow::OnBigger()
 
 void MainWindow::LoadImages()
 {
-    int i;
+    int imageIndex,layoutIndex;
+
+    qDebug() << __FUNCTION__ << this->layout;
     QModelIndexList indexList = fileSelection->selectedIndexes();
 
     // Empty the scene
     graphicsScene->clear();
 
-    // Add each selected image
-    for (i = 0; i < indexList.length(); i++) {
-//        qDebug() << "selection" << i << fileModel->fileInfo(indexList.at(i)).absoluteFilePath();
-        QPixmap pixmap(fileModel->fileInfo(indexList.at(i)).absoluteFilePath());
+    // For Each image location in the layout place an image.
+    // Repeat the image if there are more locations than selected images.
+    for (imageIndex = 0, layoutIndex = 0; layoutIndex < layout.toInt(); imageIndex++, layoutIndex++) {
+
+        // Check if we are trying to display more images than selected
+        // and loop back to the first image.
+        if (imageIndex >= indexList.length()) imageIndex = 0;
+
+        // Load the image into a pixmap
+        QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
+
+        // Put the pixmap on the display
         QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
+
+        // Move/Scale the image to the appropriate location
         //item->setPos(0,0);
         //item->setVisible(true);
     }
@@ -180,8 +193,9 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
 
 void MainWindow::OnLayout(QString layout)
 {
-    qDebug() << __FUNCTION__ << layout;
-//    LoadImages();
+//    qDebug() << __FUNCTION__ << layout;
+    this->layout = layout; // Set the current layout
+    LoadImages();
 }
 
 void MainWindow::OnAddPrinter()
@@ -210,6 +224,17 @@ void MainWindow::OnRemovePrinter()
 void MainWindow::OnPrint(int index)
 {
     qDebug() << __FUNCTION__ << printerList.at(index)->printerName();
+
+    // Do the printing here
+
+    // Set the copies count back to 1
+    ui->spinBoxCopies->setValue(1);
+
+    // Set the layout back to default
+    this->layout = QString("1 Up");
+
+    // Update the display
+    LoadImages();
 }
 
 /*

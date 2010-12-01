@@ -53,6 +53,7 @@ private:
     QGraphicsScene          *graphicsScene;
     QSignalMapper           *signalMapperPrint;
     QSignalMapper           *signalMapperLayout;
+    QString                  layout;
 
     void LoadImages();
 };
