@@ -73,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     layoutButton = newImageLayout(QString("2 Up"));
     layoutButton->addImage(QRectF(0,0,8500,5500));
-    layoutButton->addImage(QRectF(0,5500,0,5500));
+    layoutButton->addImage(QRectF(0,5500,8500,5500));
 
     layoutButton = newImageLayout(QString("4 Up"));
     layoutButton->addImage(QRectF(0,0,4250,5500));
@@ -144,6 +144,7 @@ void MainWindow::LoadImages()
 {
     int imageIndex,layoutIndex;
     bool imageLandscape,layoutLandscape;
+    double imageAspect,layoutAspect;
 
     qDebug() << __FUNCTION__ << this->imageLayoutCurr->text();
     QModelIndexList indexList = fileSelection->selectedIndexes();
@@ -161,12 +162,11 @@ void MainWindow::LoadImages()
 
         // Load the image into a pixmap
         QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
-
-        // Put the pixmap on the display
-        QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
+        imageAspect = pixmap.width() / pixmap.height();
+//        qDebug() << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << pixmap.width() << "x" << pixmap.height();
 
         // Figure out image orientation
-        if (item->boundingRect().width() / item->boundingRect().height() >= 1.0) {
+        if (imageAspect >= 1.0) {
             // Image is landscape
             imageLandscape = true;
         } else {
@@ -174,17 +174,29 @@ void MainWindow::LoadImages()
             imageLandscape = false;
         }
 
-        // Get the image rectangle where we want the image
+        // Get the layout rectangle where we want the image
         QRectF rect = imageLayoutCurr->getImageRect(layoutIndex);
+        layoutAspect = rect.width() / rect.height();
 
         // Figure out layout position orientation
-        if (rect.width() / rect.height() >= 1.0) {
+        if (layoutAspect >= 1.0) {
             // Image Layout position is landscape
             layoutLandscape = true;
         } else {
             // Image Layout position is portrait
             layoutLandscape = false;
         }
+
+        if (imageLandscape != layoutLandscape) {
+            // Different orientations so swap width and height to scale
+            pixmap = pixmap.scaled(rect.height(),rect.width(),Qt::KeepAspectRatio,Qt::FastTransformation);
+        } else {
+            // Same orientation
+            pixmap = pixmap.scaled(rect.width(),rect.height(),Qt::KeepAspectRatio,Qt::FastTransformation);
+        }
+
+        // Put the pixmap on the display
+        QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
 
         // Move/Scale the image to the appropriate location
         item->setPos(rect.center());
@@ -196,9 +208,6 @@ void MainWindow::LoadImages()
             // Same orientation so no rotation necessary
             item->setRotation(0.0);
         }
-
-        //item->setPos(0,0);
-        //item->setVisible(true);
     }
 
     ui->graphicsView->fitInView(graphicsScene->sceneRect());
