@@ -13,9 +13,11 @@ unix: CFLAGS += -DDEFAULT_DIR="~/Pictures"
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    filethumbnailprovider.cpp
+    filethumbnailprovider.cpp \
+    imagelayout.cpp
 
 HEADERS  += mainwindow.h \
-    filethumbnailprovider.h
+    filethumbnailprovider.h \
+    imagelayout.h
 
 FORMS    += mainwindow.ui

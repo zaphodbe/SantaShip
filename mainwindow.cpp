@@ -62,41 +62,27 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Setup the mapper to map the layout buttons as they are added
     signalMapperLayout = new QSignalMapper(this);
-    connect(signalMapperLayout, SIGNAL(mapped(QString)), this, SLOT(OnLayout(QString)));
+    connect(signalMapperLayout, SIGNAL(mapped(QWidget*)), this, SLOT(OnLayout(QWidget*)));
 
     // Setup the Layout buttons.
     // ToDo load these from discription files
-    QPushButton *button;
-    button = new QPushButton(QString("1 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button,0,0);
-    signalMapperLayout->setMapping(button,button->text());
-    connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
-    layout = button->text(); // Set the default layout.
+    QImageLayoutButton *layoutButton;
 
-    button = new QPushButton(QString("2 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button,0,1);
-    signalMapperLayout->setMapping(button,button->text());
-    connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
+    layoutButton = newImageLayout(QString("1 Up"));
+    layoutButton->addImage(QRectF(0,0,8500,11000));
 
-    button = new QPushButton(QString("3 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button,0,2);
-    signalMapperLayout->setMapping(button,button->text());
-    connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
+    layoutButton = newImageLayout(QString("2 Up"));
+    layoutButton->addImage(QRectF(0,0,8500,5500));
+    layoutButton->addImage(QRectF(0,5500,0,5500));
 
-    button = new QPushButton(QString("4 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button,0,3);
-    signalMapperLayout->setMapping(button,button->text());
-    connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
+    layoutButton = newImageLayout(QString("4 Up"));
+    layoutButton->addImage(QRectF(0,0,4250,5500));
+    layoutButton->addImage(QRectF(4250,0,4250,5500));
+    layoutButton->addImage(QRectF(0,5500,4250,5500));
+    layoutButton->addImage(QRectF(4250,5500,4250,5500));
 
-    button = new QPushButton(QString("8 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button,0,4);
-    signalMapperLayout->setMapping(button,button->text());
-    connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
-
-    button = new QPushButton(QString("32 Up"));
-    ui->gridLayoutLayoutButtons->addWidget(button,0,5);
-    signalMapperLayout->setMapping(button,button->text());
-    connect(button, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
+    // Select the first layout as default
+    OnLayout(imageLayoutList.first());
 }
 
 MainWindow::~MainWindow()
@@ -158,7 +144,7 @@ void MainWindow::LoadImages()
 {
     int imageIndex,layoutIndex;
 
-    qDebug() << __FUNCTION__ << this->layout;
+    qDebug() << __FUNCTION__ << this->imageLayoutCurr->text();
     QModelIndexList indexList = fileSelection->selectedIndexes();
 
     // Empty the scene
@@ -166,7 +152,7 @@ void MainWindow::LoadImages()
 
     // For Each image location in the layout place an image.
     // Repeat the image if there are more locations than selected images.
-    for (imageIndex = 0, layoutIndex = 0; layoutIndex < layout.toInt(); imageIndex++, layoutIndex++) {
+    if (indexList.length()) for (imageIndex = 0, layoutIndex = 0; layoutIndex < imageLayoutCurr->getImageCnt(); imageIndex++, layoutIndex++) {
 
         // Check if we are trying to display more images than selected
         // and loop back to the first image.
@@ -178,10 +164,18 @@ void MainWindow::LoadImages()
         // Put the pixmap on the display
         QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
 
+        // Get the image rectangle where we want the image
+        QRectF rect = imageLayoutCurr->getImageRect(layoutIndex);
+
         // Move/Scale the image to the appropriate location
+        item->setPos(rect.center().x(), rect.center().y());
         //item->setPos(0,0);
         //item->setVisible(true);
     }
+
+    ui->graphicsView->fitInView(graphicsScene->sceneRect());
+    ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
+
 }
 
 void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection deselected)
@@ -191,10 +185,20 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
     LoadImages();
 }
 
-void MainWindow::OnLayout(QString layout)
+void MainWindow::OnLayout(QWidget *widget)
 {
-//    qDebug() << __FUNCTION__ << layout;
-    this->layout = layout; // Set the current layout
+    QImageLayoutButton *imageLayout;
+
+    // Set the current layout
+    imageLayoutCurr = (QImageLayoutButton*) widget;
+
+    // enable all layouts except the selected one
+    int i;
+    for (i = 0; i < imageLayoutList.length(); i++) {
+        imageLayout = imageLayoutList.at(i);
+        imageLayout->setEnabled(imageLayout != imageLayoutCurr);
+    }
+
     LoadImages();
 }
 
@@ -230,8 +234,11 @@ void MainWindow::OnPrint(int index)
     // Set the copies count back to 1
     ui->spinBoxCopies->setValue(1);
 
-    // Set the layout back to default
-    this->layout = QString("1 Up");
+    // Set the layout back to default (first entry)
+    OnLayout(imageLayoutList.first());
+
+    // Clear the current selection
+    fileSelection->clear();
 
     // Update the display
     LoadImages();
@@ -250,4 +257,20 @@ void MainWindow::on_actionRemove_Printer_triggered(bool checked)
 {
     //qDebug() << __FUNCTION__;
     OnRemovePrinter();
+}
+
+/*
+ * Private functions
+ */
+QImageLayoutButton *MainWindow::newImageLayout(QString name)
+{
+    QImageLayoutButton *layoutButton;
+
+    layoutButton = new QImageLayoutButton(name);
+    imageLayoutList.append(layoutButton);
+    ui->gridLayoutLayoutButtons->addWidget(layoutButton,0,imageLayoutList.length());
+    signalMapperLayout->setMapping(layoutButton,layoutButton);
+    connect(layoutButton, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
+
+    return layoutButton;
 }

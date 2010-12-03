@@ -16,6 +16,7 @@
 #include <QSignalMapper>
 
 #include "filethumbnailprovider.h"
+#include "imagelayout.h"
 
 namespace Ui {
     class MainWindow;
@@ -39,23 +40,25 @@ public slots:
     void OnAddPrinter();
     void OnRemovePrinter();
     void OnPrint(int index);
-    void OnLayout(QString layout);
+    void OnLayout(QWidget *widget);
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionRemove_Printer_triggered(bool checked);
 
 private:
-    Ui::MainWindow          *ui;
-    QFileSystemModel        *fileModel;
-    QItemSelectionModel     *fileSelection;
-    QFileThumbnailProvider  *fileThumbnail;
-    QList<QPrinter*>         printerList;
-    QList<QPushButton*>      printButtonList;
-    QGraphicsScene          *graphicsScene;
-    QSignalMapper           *signalMapperPrint;
-    QSignalMapper           *signalMapperLayout;
-    QString                  layout;
+    Ui::MainWindow              *ui;
+    QFileSystemModel            *fileModel;
+    QItemSelectionModel         *fileSelection;
+    QFileThumbnailProvider      *fileThumbnail;
+    QList<QPrinter*>             printerList;
+    QList<QPushButton*>          printButtonList;
+    QGraphicsScene              *graphicsScene;
+    QSignalMapper               *signalMapperPrint;
+    QSignalMapper               *signalMapperLayout;
+    QList<QImageLayoutButton*>   imageLayoutList;
+    QImageLayoutButton          *imageLayoutCurr;
 
     void LoadImages();
+    QImageLayoutButton          *newImageLayout(QString name);
 };
 
 #endif // MAINWINDOW_H
