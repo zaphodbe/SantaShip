@@ -143,6 +143,7 @@ void MainWindow::OnBigger()
 void MainWindow::LoadImages()
 {
     int imageIndex,layoutIndex;
+    bool imageLandscape,layoutLandscape;
 
     qDebug() << __FUNCTION__ << this->imageLayoutCurr->text();
     QModelIndexList indexList = fileSelection->selectedIndexes();
@@ -164,11 +165,38 @@ void MainWindow::LoadImages()
         // Put the pixmap on the display
         QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
 
+        // Figure out image orientation
+        if (item->boundingRect().width() / item->boundingRect().height() >= 1.0) {
+            // Image is landscape
+            imageLandscape = true;
+        } else {
+            // Image is portrait
+            imageLandscape = false;
+        }
+
         // Get the image rectangle where we want the image
         QRectF rect = imageLayoutCurr->getImageRect(layoutIndex);
 
+        // Figure out layout position orientation
+        if (rect.width() / rect.height() >= 1.0) {
+            // Image Layout position is landscape
+            layoutLandscape = true;
+        } else {
+            // Image Layout position is portrait
+            layoutLandscape = false;
+        }
+
         // Move/Scale the image to the appropriate location
-        item->setPos(rect.center().x(), rect.center().y());
+        item->setPos(rect.center());
+
+        if (imageLandscape != layoutLandscape) {
+            // Different orientations so we need to rotate the image to fit the layout
+            item->setRotation(90.0);
+        } else {
+            // Same orientation so no rotation necessary
+            item->setRotation(0.0);
+        }
+
         //item->setPos(0,0);
         //item->setVisible(true);
     }
