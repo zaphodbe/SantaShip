@@ -16,7 +16,8 @@ public:
     int     getImageCnt()           {return imageList->length();};
     QRectF  getImageRect(int i)     {return imageList->at(i);};
 
-    void    addImage(QRectF rect)   {imageList->append(rect);};
+    QRectF  rect;
+    void    addImage(QRectF rect);
 
 signals:
 

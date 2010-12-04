@@ -54,7 +54,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Setup the graphics scene to paint the images in
     graphicsScene = new QGraphicsScene(this);
-    ui->graphicsView->setScene(graphicsScene);
 
     // Setup the mapper to map the printer buttons as they are added
     signalMapperPrint = new QSignalMapper(this);
@@ -210,8 +209,11 @@ void MainWindow::LoadImages()
         }
     }
 
-    ui->graphicsView->fitInView(graphicsScene->sceneRect());
-    ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
+    ui->graphicsView->setScene(graphicsScene);
+//    ui->graphicsView->fitInView(graphicsScene->sceneRect());
+//    ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
+    ui->graphicsView->fitInView(imageLayoutCurr->rect);
+    ui->graphicsView->ensureVisible(imageLayoutCurr->rect);
 
 }
 

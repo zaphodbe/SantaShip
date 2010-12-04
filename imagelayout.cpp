@@ -5,6 +5,7 @@ QImageLayoutButton::QImageLayoutButton(QWidget *parent) :
         imageList(0)
 {
     imageList = new QList<QRectF>();
+    rect = QRectF(0,0,0,0);
 }
 
 QImageLayoutButton::QImageLayoutButton(const QString &text, QWidget *parent) :
@@ -12,6 +13,7 @@ QImageLayoutButton::QImageLayoutButton(const QString &text, QWidget *parent) :
         imageList(0)
 {
     imageList = new QList<QRectF>();
+    rect = QRectF(0,0,0,0);
 }
 
 QImageLayoutButton::QImageLayoutButton(const QIcon &icon, const QString &text, QWidget *parent) :
@@ -19,9 +21,20 @@ QImageLayoutButton::QImageLayoutButton(const QIcon &icon, const QString &text, Q
         imageList(0)
 {
     imageList = new QList<QRectF>();
+    rect = QRectF(0,0,0,0);
 }
 
 QImageLayoutButton::~QImageLayoutButton()
 {
     delete imageList;
+}
+
+void QImageLayoutButton::addImage(QRectF rect)
+{
+    imageList->append(rect);
+    // Adjust the bounding rectangle
+    if (rect.left()   < this->rect.left()  ) this->rect.setLeft(rect.left());
+    if (rect.right()  > this->rect.right() ) this->rect.setRight(rect.right());
+    if (rect.top()    < this->rect.top()   ) this->rect.setTop(rect.top());
+    if (rect.bottom() > this->rect.bottom()) this->rect.setBottom(rect.bottom());
 }
