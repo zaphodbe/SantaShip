@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QGraphicsItem>
+#include <QPrintPreviewDialog>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
@@ -266,21 +267,42 @@ void MainWindow::OnRemovePrinter()
 
 void MainWindow::OnPrint(int index)
 {
-    qDebug() << __FUNCTION__ << printerList.at(index)->printerName();
+    QPrinter *printer = printerList.at(index);
+
+    qDebug() << __FUNCTION__ << printer->printerName();
 
     // Do the printing here
 
-    // Set the copies count back to 1
-    ui->spinBoxCopies->setValue(1);
+    // Do a preview if checked
+    if (ui->checkBoxPreview->checkState() == Qt::Checked) {
+        QPrintPreviewDialog printPreview(printer);
+        connect(&printPreview, SIGNAL(paintRequested(QPrinter*)), this, SLOT(paintRequested(QPrinter*)));
+        printPreview.exec();
+        disconnect(this, SLOT(paintRequested(QPrinter*)));
+    } else {
+        paintRequested(printer);
+    }
 
-    // Set the layout back to default (first entry)
-    OnLayout(imageLayoutList.first());
+    // If Reset is checked clear the settings
+    if (ui->checkBoxReset->checkState() == Qt::Checked) {
+        // Set the copies count back to 1
+        ui->spinBoxCopies->setValue(1);
 
-    // Clear the current selection
-    fileSelection->clear();
+        // Set the layout back to default (first entry)
+        OnLayout(imageLayoutList.first());
 
-    // Update the display
-    LoadImages();
+        // Clear the current selection
+        fileSelection->clear();
+
+        // Update the display
+        LoadImages();
+    }
+}
+
+void MainWindow::paintRequested(QPrinter *printer)
+{
+    QPainter painter(printer);
+    graphicsScene->render(&painter);
 }
 
 /*

@@ -43,6 +43,7 @@ public slots:
     void OnLayout(QWidget *widget);
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionRemove_Printer_triggered(bool checked);
+    void paintRequested(QPrinter* printer);
 
 private:
     Ui::MainWindow              *ui;

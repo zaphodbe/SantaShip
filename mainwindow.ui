@@ -107,6 +107,23 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="checkBoxPreview">
+          <property name="text">
+           <string>Preview</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxReset">
+          <property name="text">
+           <string>Reset on Print</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="label">
