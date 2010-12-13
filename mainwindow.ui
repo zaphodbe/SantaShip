@@ -168,6 +168,7 @@
     </property>
     <addaction name="actionAdd_Printer"/>
     <addaction name="actionRemove_Printer"/>
+    <addaction name="actionFull_Screen"/>
    </widget>
    <addaction name="menuSetup"/>
   </widget>
@@ -188,6 +189,11 @@
   <action name="actionRemove_Printer">
    <property name="text">
     <string>&amp;Remove Printer</string>
+   </property>
+  </action>
+  <action name="actionFull_Screen">
+   <property name="text">
+    <string>Full Screen</string>
    </property>
   </action>
  </widget>

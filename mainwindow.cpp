@@ -15,6 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    // Initialize so we can access the settings
+    settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
+
     // Start the ui engine
     ui->setupUi(this);
 
@@ -83,10 +86,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Select the first layout as default
     OnLayout(imageLayoutList.first());
+
+    // Load the settings
+    readSettings();
 }
 
 MainWindow::~MainWindow()
 {
+    // Make sure any settings are saved
+    writeSettings();
+
+    // And flush the settings writes
+    settings->sync();
+
     delete signalMapperLayout;
     delete signalMapperPrint;
     delete graphicsScene;
@@ -94,6 +106,7 @@ MainWindow::~MainWindow()
     delete fileModel;
     delete fileThumbnail;
     delete ui;
+    delete settings;
 }
 
 /*
@@ -242,6 +255,18 @@ void MainWindow::OnLayout(QWidget *widget)
     LoadImages();
 }
 
+void MainWindow::AddPrinter(QPrinter *printer)
+{
+    printerList.append(printer);
+
+    QPushButton *button = new QPushButton(printer->printerName());
+    printButtonList.append(button);
+    ui->verticalLayoutPrintButtons->addWidget(button);
+
+    signalMapperPrint->setMapping(button,printButtonList.length() - 1);
+    connect(button, SIGNAL(clicked()), signalMapperPrint, SLOT(map()));
+}
+
 void MainWindow::OnAddPrinter()
 {
 //    qDebug() << __FUNCTION__;
@@ -249,14 +274,7 @@ void MainWindow::OnAddPrinter()
     QPrintDialog printDialog(printer, this);
     if (printDialog.exec() == QDialog::Accepted) {
         qDebug() << "adding" << printer->printerName() << printer->resolution();
-        printerList.append(printer);
-
-        QPushButton *button = new QPushButton(printer->printerName());
-        printButtonList.append(button);
-        ui->verticalLayoutPrintButtons->addWidget(button);
-
-        signalMapperPrint->setMapping(button,printButtonList.length() - 1);
-        connect(button, SIGNAL(clicked()), signalMapperPrint, SLOT(map()));
+        AddPrinter(printer);
     }
 }
 
@@ -273,13 +291,14 @@ void MainWindow::OnPrint(int index)
 
     // Do the printing here
 
-    // Do a preview if checked
     if (ui->checkBoxPreview->checkState() == Qt::Checked) {
+        // Do a preview if checked
         QPrintPreviewDialog printPreview(printer);
         connect(&printPreview, SIGNAL(paintRequested(QPrinter*)), this, SLOT(paintRequested(QPrinter*)));
         printPreview.exec();
         disconnect(this, SLOT(paintRequested(QPrinter*)));
     } else {
+        // Else do a print
         paintRequested(printer);
     }
 
@@ -320,6 +339,16 @@ void MainWindow::on_actionRemove_Printer_triggered(bool checked)
     OnRemovePrinter();
 }
 
+void MainWindow::on_actionFull_Screen_triggered(bool checked)
+{
+    qDebug() << __FUNCTION__;
+    if (isFullScreen()) {
+        showNormal();
+    } else {
+        showFullScreen();
+    }
+}
+
 /*
  * Private functions
  */
@@ -334,4 +363,94 @@ QImageLayoutButton *MainWindow::newImageLayout(QString name)
     connect(layoutButton, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
 
     return layoutButton;
+}
+
+/*
+ * Application settings
+ */
+void MainWindow::writeSettings()
+{
+    settings->setValue("MainWindow/fullscreen", isFullScreen());
+    settings->setValue("MainWindow/maximize", isMaximized());
+    settings->setValue("MainWindow/size", size());
+    settings->setValue("MainWindow/pos", pos());
+    settings->setValue("CurrentDir", fileModel->rootPath());
+
+    int i, numPrinters;
+    numPrinters = printerList.length();
+    settings->setValue("NumPrinters", numPrinters);
+    for (i = 0; i < numPrinters; i++) {
+        QPrinter *printer = printerList.at(i);
+        QString   settingBase("Printer/");
+        settingBase.append(QString::number(i));
+        qDebug() << "Saving" << settingBase << printer->printerName();
+
+        settings->beginGroup(settingBase);
+        settings->setValue("OutputFormat",printer->outputFormat());
+        settings->setValue("Name",printer->printerName());
+        settings->setValue("DocName",printer->docName());
+        settings->setValue("Creator",printer->creator());
+        settings->setValue("Orientation",printer->orientation());
+        settings->setValue("PageSize",printer->pageSize());
+        settings->setValue("PaperSize",printer->paperSize());
+        settings->setValue("PageOrder",printer->pageOrder());
+        settings->setValue("Resolution",printer->resolution());
+        settings->setValue("ColorMode",printer->colorMode());
+        settings->setValue("CollateCopies",printer->collateCopies());
+        settings->setValue("FullPage",printer->fullPage());
+        settings->setValue("NumCopies",printer->numCopies());
+        settings->setValue("CopyCount",printer->copyCount());
+        settings->setValue("PaperSource",printer->paperSource());
+        settings->setValue("Duplex",printer->duplex());
+        settings->endGroup();
+    }
+}
+
+void MainWindow::readSettings()
+{
+    if (settings->value("MainWindow/fullscreen", true).toBool()) {
+        showFullScreen();
+    } else if (settings->value("MainWindow/maximize", true).toBool()) {
+        showMaximized();
+    } else {
+        showNormal();
+        resize(settings->value("MainWindow/size", QSize(720,480)).toSize());
+        move(settings->value("MainWindow/pos", QPoint(100,100)).toPoint());
+    }
+
+    // Setup the current directory
+    QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
+    qDebug() << "dirName" << dirName;
+    dirName = settings->value("CurrentDir", dirName).toString();
+    fileModel->setRootPath(dirName);
+
+    int i, numPrinters;
+    numPrinters = settings->value("NumPrinters", 0).toInt();
+    for (i = 0; i < numPrinters; i++) {
+        QPrinter *printer = new QPrinter();
+        QString   settingBase("Printer/");
+        settingBase.append(QString::number(i));
+        qDebug() << "Loading" << settingBase;
+
+        settings->beginGroup(settingBase);
+        printer->setOutputFormat((QPrinter::OutputFormat) settings->value("OutputFormat").toInt());
+        printer->setPrinterName(settings->value("Name").toString());
+        printer->setDocName(settings->value("DocName").toString());
+        printer->setCreator(settings->value("Creator").toString());
+        printer->setOrientation((QPrinter::Orientation) settings->value("Orientation").toInt());
+        printer->setPageSize((QPrinter::PageSize) settings->value("PageSize").toInt());
+        printer->setPaperSize((QPrinter::PaperSize) settings->value("PaperSize").toInt());
+        printer->setPageOrder((QPrinter::PageOrder) settings->value("PageOrder").toInt());
+        printer->setResolution(settings->value("Resolution").toInt());
+        printer->setColorMode((QPrinter::ColorMode) settings->value("ColorMode").toInt());
+        printer->setCollateCopies(settings->value("CollateCopies").toBool());
+        printer->setFullPage(settings->value("FullPage").toBool());
+        printer->setNumCopies(settings->value("NumCopies").toInt());
+        printer->setCopyCount(settings->value("CopyCount").toInt());
+        printer->setPaperSource((QPrinter::PaperSource) settings->value("PaperSource").toInt());
+        printer->setDuplex((QPrinter::DuplexMode) settings->value("Duplex").toInt());
+        settings->endGroup();
+
+        AddPrinter(printer);
+    }
 }

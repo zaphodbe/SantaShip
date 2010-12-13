@@ -14,6 +14,7 @@
 #include <QGraphicsScene>
 #include <QPushButton>
 #include <QSignalMapper>
+#include <QSettings>
 
 #include "filethumbnailprovider.h"
 #include "imagelayout.h"
@@ -41,9 +42,14 @@ public slots:
     void OnRemovePrinter();
     void OnPrint(int index);
     void OnLayout(QWidget *widget);
+
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionRemove_Printer_triggered(bool checked);
+    void on_actionFull_Screen_triggered(bool checked);
+
     void paintRequested(QPrinter* printer);
+    void writeSettings();
+    void readSettings();
 
 private:
     Ui::MainWindow              *ui;
@@ -57,9 +63,12 @@ private:
     QSignalMapper               *signalMapperLayout;
     QList<QImageLayoutButton*>   imageLayoutList;
     QImageLayoutButton          *imageLayoutCurr;
+    QSettings                   *settings;
 
     void LoadImages();
     QImageLayoutButton          *newImageLayout(QString name);
+    void                         AddPrinter(QPrinter *printer);
+
 };
 
 #endif // MAINWINDOW_H
