@@ -165,6 +165,9 @@ void MainWindow::LoadImages()
     // Empty the scene
     graphicsScene->clear();
 
+    // Draw a bounding rectangle for the page
+    graphicsScene->addRect(0,0,8500,11000);
+
     // For Each image location in the layout place an image.
     // Repeat the image if there are more locations than selected images.
     if (indexList.length()) for (imageIndex = 0, layoutIndex = 0; layoutIndex < imageLayoutCurr->getImageCnt(); imageIndex++, layoutIndex++) {
@@ -191,6 +194,9 @@ void MainWindow::LoadImages()
         QRectF rect = imageLayoutCurr->getImageRect(layoutIndex);
         layoutAspect = rect.width() / rect.height();
 
+        // Draw a bounding rectangle
+        graphicsScene->addRect(rect);
+
         // Figure out layout position orientation
         if (layoutAspect >= 1.0) {
             // Image Layout position is landscape
@@ -200,35 +206,44 @@ void MainWindow::LoadImages()
             layoutLandscape = false;
         }
 
-        if (imageLandscape != layoutLandscape) {
-            // Different orientations so swap width and height to scale
-            pixmap = pixmap.scaled(rect.height(),rect.width(),Qt::KeepAspectRatio,Qt::FastTransformation);
-        } else {
-            // Same orientation
-            pixmap = pixmap.scaled(rect.width(),rect.height(),Qt::KeepAspectRatio,Qt::FastTransformation);
-        }
-
         // Put the pixmap on the display
         QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
 
         // Move/Scale the image to the appropriate location
-        item->setPos(rect.center());
-
         if (imageLandscape != layoutLandscape) {
             // Different orientations so we need to rotate the image to fit the layout
             item->setRotation(90.0);
+
+            qreal r1 = (qreal) rect.width()/(qreal) pixmap.height();
+            qreal r2 = (qreal) rect.height()/(qreal) pixmap.width();
+
+            if (r1 > r2) {
+                item->setScale(r2);
+            } else {
+                item->setScale(r1);
+            }
+
+            item->setPos(rect.topRight());
         } else {
             // Same orientation so no rotation necessary
             item->setRotation(0.0);
+
+            qreal r1 = (qreal) rect.width()/(qreal) pixmap.width();
+            qreal r2 = (qreal) rect.height()/(qreal) pixmap.height();
+
+            if (r1 > r2) {
+                item->setScale(r2);
+            } else {
+                item->setScale(r1);
+            }
+
+            item->setPos(rect.topLeft());
         }
     }
 
     ui->graphicsView->setScene(graphicsScene);
-//    ui->graphicsView->fitInView(graphicsScene->sceneRect());
-//    ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
-    ui->graphicsView->fitInView(imageLayoutCurr->rect);
-    ui->graphicsView->ensureVisible(imageLayoutCurr->rect);
-
+    ui->graphicsView->fitInView(graphicsScene->sceneRect());
+    ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
 }
 
 void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection deselected)
@@ -375,6 +390,7 @@ void MainWindow::writeSettings()
     settings->setValue("MainWindow/size", size());
     settings->setValue("MainWindow/pos", pos());
     settings->setValue("CurrentDir", fileModel->rootPath());
+    settings->setValue("ThumbNailSize", ui->listView->iconSize());
 
     int i, numPrinters;
     numPrinters = printerList.length();
@@ -423,6 +439,8 @@ void MainWindow::readSettings()
     qDebug() << "dirName" << dirName;
     dirName = settings->value("CurrentDir", dirName).toString();
     fileModel->setRootPath(dirName);
+
+    ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
 
     int i, numPrinters;
     numPrinters = settings->value("NumPrinters", 0).toInt();
