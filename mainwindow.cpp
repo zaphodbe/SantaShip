@@ -13,7 +13,8 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    saveSettingsOnExit(0)
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
@@ -209,36 +210,44 @@ void MainWindow::LoadImages()
         // Put the pixmap on the display
         QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
 
+        // Local variables
+        qreal x,y,r1,r2;
+
         // Move/Scale the image to the appropriate location
         if (imageLandscape != layoutLandscape) {
             // Different orientations so we need to rotate the image to fit the layout
             item->setRotation(90.0);
 
-            qreal r1 = (qreal) rect.width()/(qreal) pixmap.height();
-            qreal r2 = (qreal) rect.height()/(qreal) pixmap.width();
+            x  = rect.right();
+            y  = rect.top();
+            r1 = (qreal) rect.width()/(qreal) pixmap.height();
+            r2 = (qreal) rect.height()/(qreal) pixmap.width();
 
             if (r1 > r2) {
-                item->setScale(r2);
-            } else {
-                item->setScale(r1);
+                r1 = r2;
             }
 
-            item->setPos(rect.topRight());
+            x -= (rect.width() - pixmap.height() * r1) / 2.0;
+            y -= (rect.height() - pixmap.width() * r1) / 2.0;
         } else {
             // Same orientation so no rotation necessary
             item->setRotation(0.0);
 
-            qreal r1 = (qreal) rect.width()/(qreal) pixmap.width();
-            qreal r2 = (qreal) rect.height()/(qreal) pixmap.height();
+            x  = rect.left();
+            y  = rect.top();
+            r1 = (qreal) rect.width()/(qreal) pixmap.width();
+            r2 = (qreal) rect.height()/(qreal) pixmap.height();
 
             if (r1 > r2) {
-                item->setScale(r2);
-            } else {
-                item->setScale(r1);
+                r1 = r2;
             }
 
-            item->setPos(rect.topLeft());
+            x += (rect.width() - pixmap.width() * r1) / 2.0;
+            y -= (rect.height() - pixmap.height() * r1) / 2.0;
         }
+
+        item->setScale(r1);
+        item->setPos(x,y);
     }
 
     ui->graphicsView->setScene(graphicsScene);
@@ -364,6 +373,11 @@ void MainWindow::on_actionFull_Screen_triggered(bool checked)
     }
 }
 
+void MainWindow::on_actionSave_Settings_triggered(bool checked)
+{
+    writeSettings();
+}
+
 /*
  * Private functions
  */
@@ -391,6 +405,7 @@ void MainWindow::writeSettings()
     settings->setValue("MainWindow/pos", pos());
     settings->setValue("CurrentDir", fileModel->rootPath());
     settings->setValue("ThumbNailSize", ui->listView->iconSize());
+    settings->setValue("SaveSettingsOnExit", saveSettingsOnExit);
 
     int i, numPrinters;
     numPrinters = printerList.length();
@@ -441,6 +456,8 @@ void MainWindow::readSettings()
     fileModel->setRootPath(dirName);
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
+
+    saveSettingsOnExit = settings->value("SaveSettingsOnExit", false).toBool();
 
     int i, numPrinters;
     numPrinters = settings->value("NumPrinters", 0).toInt();

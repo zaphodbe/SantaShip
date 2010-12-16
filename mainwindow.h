@@ -46,6 +46,7 @@ public slots:
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionRemove_Printer_triggered(bool checked);
     void on_actionFull_Screen_triggered(bool checked);
+    void on_actionSave_Settings_triggered(bool checked);
 
     void paintRequested(QPrinter* printer);
     void writeSettings();
@@ -64,6 +65,7 @@ private:
     QList<QImageLayoutButton*>   imageLayoutList;
     QImageLayoutButton          *imageLayoutCurr;
     QSettings                   *settings;
+    bool                         saveSettingsOnExit;
 
     void LoadImages();
     QImageLayoutButton          *newImageLayout(QString name);

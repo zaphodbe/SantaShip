@@ -169,6 +169,8 @@
     <addaction name="actionAdd_Printer"/>
     <addaction name="actionRemove_Printer"/>
     <addaction name="actionFull_Screen"/>
+    <addaction name="actionSave_Settings"/>
+    <addaction name="actionSave_Settings_On_Exit"/>
    </widget>
    <addaction name="menuSetup"/>
   </widget>
@@ -192,8 +194,24 @@
    </property>
   </action>
   <action name="actionFull_Screen">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Full Screen</string>
+   </property>
+  </action>
+  <action name="actionSave_Settings">
+   <property name="text">
+    <string>Save Settings</string>
+   </property>
+  </action>
+  <action name="actionSave_Settings_On_Exit">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save Settings On Exit</string>
    </property>
   </action>
  </widget>
