@@ -47,6 +47,7 @@ public slots:
     void on_actionRemove_Printer_triggered(bool checked);
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);
+    void on_actionSave_Settings_On_Exit_triggered(bool checked);
 
     void paintRequested(QPrinter* printer);
     void writeSettings();

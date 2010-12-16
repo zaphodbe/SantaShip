@@ -365,8 +365,8 @@ void MainWindow::on_actionRemove_Printer_triggered(bool checked)
 
 void MainWindow::on_actionFull_Screen_triggered(bool checked)
 {
-    qDebug() << __FUNCTION__;
-    if (isFullScreen()) {
+    //qDebug() << __FUNCTION__;
+    if (!checked) {
         showNormal();
     } else {
         showFullScreen();
@@ -376,6 +376,11 @@ void MainWindow::on_actionFull_Screen_triggered(bool checked)
 void MainWindow::on_actionSave_Settings_triggered(bool checked)
 {
     writeSettings();
+}
+
+void MainWindow::on_actionSave_Settings_On_Exit_triggered(bool checked)
+{
+    saveSettingsOnExit = checked;
 }
 
 /*
