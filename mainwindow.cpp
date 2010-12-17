@@ -22,6 +22,16 @@ MainWindow::MainWindow(QWidget *parent) :
     // Start the ui engine
     ui->setupUi(this);
 
+    // Setup the right click actions that we will add to the buttons
+    actionDeletePictures = new QAction(tr("Delete Selected"),this);
+    connect(actionDeletePictures, SIGNAL(triggered()), this, SLOT(OnDeletePictures()));
+
+    signalMapperPrinterRemove = new QSignalMapper(this);
+    connect(signalMapperPrinterRemove, SIGNAL(mapped(int)), this, SLOT(OnPrinterRemove(int)));
+
+    signalMapperPrinterSettings = new QSignalMapper(this);
+    connect(signalMapperPrinterSettings, SIGNAL(mapped(int)), this, SLOT(OnPrinterSettings(int)));
+
     // Setup the initial directory
     QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
     qDebug() << "dirName" << dirName;
@@ -50,6 +60,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initialize the list view to display the file system model
     ui->listView->setModel(fileModel);
     ui->listView->setRootIndex(fileModel->index(dirName));
+    ui->listView->addAction(actionDeletePictures);
+    ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     // Setup the class to track selections on the list view
     fileSelection = new QItemSelectionModel(fileModel);
@@ -154,6 +166,11 @@ void MainWindow::OnBigger()
     }
 }
 
+void MainWindow::OnDeletePictures()
+{
+    qDebug() << __FUNCTION__;
+}
+
 void MainWindow::LoadImages()
 {
     int imageIndex,layoutIndex;
@@ -167,7 +184,7 @@ void MainWindow::LoadImages()
     graphicsScene->clear();
 
     // Draw a bounding rectangle for the page
-    graphicsScene->addRect(0,0,8500,11000);
+    graphicsScene->addRect(0,0,8500,11000,QPen(QColor(255,255,255)));
 
     // For Each image location in the layout place an image.
     // Repeat the image if there are more locations than selected images.
@@ -196,7 +213,7 @@ void MainWindow::LoadImages()
         layoutAspect = rect.width() / rect.height();
 
         // Draw a bounding rectangle
-        graphicsScene->addRect(rect);
+//        graphicsScene->addRect(rect,,QPen(QColor(255,255,255)));
 
         // Figure out layout position orientation
         if (layoutAspect >= 1.0) {
@@ -251,7 +268,7 @@ void MainWindow::LoadImages()
     }
 
     ui->graphicsView->setScene(graphicsScene);
-    ui->graphicsView->fitInView(graphicsScene->sceneRect());
+    ui->graphicsView->fitInView(graphicsScene->sceneRect(),Qt::KeepAspectRatio);
     ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
 }
 
@@ -284,11 +301,23 @@ void MainWindow::AddPrinter(QPrinter *printer)
     printerList.append(printer);
 
     QPushButton *button = new QPushButton(printer->printerName());
+    QAction *actionPrinterRemove = new QAction(tr("Remove Printer"),this);
+    QAction *actionPrinterSettings = new QAction(tr("Printer Settings"),this);
+    button->addAction(actionPrinterRemove);
+    button->addAction(actionPrinterSettings);
+    button->setContextMenuPolicy(Qt::ActionsContextMenu);
+
     printButtonList.append(button);
     ui->verticalLayoutPrintButtons->addWidget(button);
 
     signalMapperPrint->setMapping(button,printButtonList.length() - 1);
     connect(button, SIGNAL(clicked()), signalMapperPrint, SLOT(map()));
+
+    signalMapperPrinterRemove->setMapping(actionPrinterRemove,printButtonList.length() - 1);
+    connect(actionPrinterRemove, SIGNAL(triggered()), signalMapperPrinterRemove, SLOT(map()));
+
+    signalMapperPrinterSettings->setMapping(actionPrinterSettings,printButtonList.length() - 1);
+    connect(actionPrinterSettings, SIGNAL(triggered()), signalMapperPrinterSettings, SLOT(map()));
 }
 
 void MainWindow::OnAddPrinter()
@@ -302,14 +331,52 @@ void MainWindow::OnAddPrinter()
     }
 }
 
-void MainWindow::OnRemovePrinter()
+void MainWindow::OnPrinterRemove(int index)
 {
-    qDebug() << __FUNCTION__;
+    int i;
+    // Set the current button
+    QPushButton *button = printButtonList.at(index);
+    qDebug() << __FUNCTION__ << button->text();
+
+    // Cleanup and remove the button
+    ui->verticalLayoutPrintButtons->removeWidget(button);
+    disconnect(button, SIGNAL(clicked()));
+    button->hide();
+    while(button->actions().length()) {
+        QAction *action = button->actions().last();
+        disconnect(action, SIGNAL(triggered()));
+        button->removeAction(action);
+        delete action;
+    }
+    // ToDo delete the button causing SIGABRT
+//    delete button;
+
+    // Just replace the entry in the list with NULL so other printer indexes are still correct
+    printButtonList.replace(index, NULL);
+
+    // Also cleanup the printer object
+    QPrinter *printer = printerList.at(index);
+    delete printer;
+
+    // Just replace the entry in the list with NULL so other printer indexes are still correct
+    printerList.replace(index, NULL);
+}
+
+void MainWindow::OnPrinterSettings(int index)
+{
+    // Set the current button
+    QPushButton *button = printButtonList.at(index);
+    qDebug() << __FUNCTION__ << button->text();
+
+    // ToDo: Dialog only flashed and doesn't let you change anything
+    QPrintDialog printDialog(printerList.at(index), this);
+    printDialog.exec();
 }
 
 void MainWindow::OnPrint(int index)
 {
     QPrinter *printer = printerList.at(index);
+    printer->setCopyCount(ui->spinBoxCopies->value());
 
     qDebug() << __FUNCTION__ << printer->printerName();
 
@@ -351,18 +418,6 @@ void MainWindow::paintRequested(QPrinter *printer)
 /*
  * Automatically connected action driven slots
  */
-void MainWindow::on_actionAdd_Printer_triggered(bool checked)
-{
-    //qDebug() << __FUNCTION__;
-    OnAddPrinter();
-}
-
-void MainWindow::on_actionRemove_Printer_triggered(bool checked)
-{
-    //qDebug() << __FUNCTION__;
-    OnRemovePrinter();
-}
-
 void MainWindow::on_actionFull_Screen_triggered(bool checked)
 {
     //qDebug() << __FUNCTION__;
@@ -411,15 +466,19 @@ void MainWindow::writeSettings()
     settings->setValue("CurrentDir", fileModel->rootPath());
     settings->setValue("ThumbNailSize", ui->listView->iconSize());
     settings->setValue("SaveSettingsOnExit", saveSettingsOnExit);
+    settings->setValue("ResetOnPrint", ui->checkBoxReset->isChecked());
+    settings->setValue("PrintPreview", ui->checkBoxPreview->isChecked());
 
     int i, numPrinters;
+    int numPrintersSaved = 0;
     numPrinters = printerList.length();
-    settings->setValue("NumPrinters", numPrinters);
     for (i = 0; i < numPrinters; i++) {
         QPrinter *printer = printerList.at(i);
+        if (!printer) continue; // Skip removed printers
+
         QString   settingBase("Printer/");
-        settingBase.append(QString::number(i));
-        qDebug() << "Saving" << settingBase << printer->printerName();
+        settingBase.append(QString::number(numPrintersSaved));
+//        qDebug() << "Saving" << settingBase << printer->printerName();
 
         settings->beginGroup(settingBase);
         settings->setValue("OutputFormat",printer->outputFormat());
@@ -435,23 +494,28 @@ void MainWindow::writeSettings()
         settings->setValue("CollateCopies",printer->collateCopies());
         settings->setValue("FullPage",printer->fullPage());
         settings->setValue("NumCopies",printer->numCopies());
-        settings->setValue("CopyCount",printer->copyCount());
+//        settings->setValue("CopyCount",printer->copyCount());
         settings->setValue("PaperSource",printer->paperSource());
         settings->setValue("Duplex",printer->duplex());
         settings->endGroup();
+        numPrintersSaved ++;
     }
+    settings->setValue("NumPrinters", numPrintersSaved);
 }
 
 void MainWindow::readSettings()
 {
     if (settings->value("MainWindow/fullscreen", true).toBool()) {
         showFullScreen();
+        ui->actionFull_Screen->setChecked(true);
     } else if (settings->value("MainWindow/maximize", true).toBool()) {
         showMaximized();
+        ui->actionFull_Screen->setChecked(false);
     } else {
         showNormal();
         resize(settings->value("MainWindow/size", QSize(720,480)).toSize());
         move(settings->value("MainWindow/pos", QPoint(100,100)).toPoint());
+        ui->actionFull_Screen->setChecked(false);
     }
 
     // Setup the current directory
@@ -463,6 +527,10 @@ void MainWindow::readSettings()
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
 
     saveSettingsOnExit = settings->value("SaveSettingsOnExit", false).toBool();
+    ui->actionSave_Settings_On_Exit->setChecked(saveSettingsOnExit);
+
+    ui->checkBoxReset->setChecked(settings->value("ResetOnPrint", true).toBool());
+    ui->checkBoxPreview->setChecked(settings->value("PrintPreview", false).toBool());
 
     int i, numPrinters;
     numPrinters = settings->value("NumPrinters", 0).toInt();
@@ -470,7 +538,7 @@ void MainWindow::readSettings()
         QPrinter *printer = new QPrinter();
         QString   settingBase("Printer/");
         settingBase.append(QString::number(i));
-        qDebug() << "Loading" << settingBase;
+//        qDebug() << "Loading" << settingBase;
 
         settings->beginGroup(settingBase);
         printer->setOutputFormat((QPrinter::OutputFormat) settings->value("OutputFormat").toInt());
@@ -486,7 +554,7 @@ void MainWindow::readSettings()
         printer->setCollateCopies(settings->value("CollateCopies").toBool());
         printer->setFullPage(settings->value("FullPage").toBool());
         printer->setNumCopies(settings->value("NumCopies").toInt());
-        printer->setCopyCount(settings->value("CopyCount").toInt());
+//        printer->setCopyCount(settings->value("CopyCount").toInt());
         printer->setPaperSource((QPrinter::PaperSource) settings->value("PaperSource").toInt());
         printer->setDuplex((QPrinter::DuplexMode) settings->value("Duplex").toInt());
         settings->endGroup();

@@ -39,12 +39,12 @@ public slots:
     void OnBigger();
     void OnSelectionChanged(QItemSelection selected,QItemSelection deselected);
     void OnAddPrinter();
-    void OnRemovePrinter();
+    void OnPrinterRemove(int index);
+    void OnPrinterSettings(int index);
     void OnPrint(int index);
     void OnLayout(QWidget *widget);
+    void OnDeletePictures();
 
-    void on_actionAdd_Printer_triggered(bool checked);
-    void on_actionRemove_Printer_triggered(bool checked);
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);
     void on_actionSave_Settings_On_Exit_triggered(bool checked);
@@ -63,9 +63,14 @@ private:
     QGraphicsScene              *graphicsScene;
     QSignalMapper               *signalMapperPrint;
     QSignalMapper               *signalMapperLayout;
+    QSignalMapper               *signalMapperPrinterSettings;
+    QSignalMapper               *signalMapperPrinterRemove;
     QList<QImageLayoutButton*>   imageLayoutList;
     QImageLayoutButton          *imageLayoutCurr;
     QSettings                   *settings;
+    QAction                     *actionDeletePictures;
+    QAction                     *actionPrinterSettings;
+    QAction                     *actionPrinterRemove;
     bool                         saveSettingsOnExit;
 
     void LoadImages();

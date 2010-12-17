@@ -166,8 +166,6 @@
     <property name="title">
      <string>&amp;Setup</string>
     </property>
-    <addaction name="actionAdd_Printer"/>
-    <addaction name="actionRemove_Printer"/>
     <addaction name="actionFull_Screen"/>
     <addaction name="actionSave_Settings"/>
     <addaction name="actionSave_Settings_On_Exit"/>
