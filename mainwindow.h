@@ -31,6 +31,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+protected:
+    void resizeEvent(QResizeEvent *event);
+
 signals:
 
 public slots:
@@ -44,6 +47,7 @@ public slots:
     void OnPrint(int index);
     void OnLayout(QWidget *widget);
     void OnDeletePictures();
+    void OnResize();
 
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);
@@ -76,7 +80,6 @@ private:
     void LoadImages();
     QImageLayoutButton          *newImageLayout(QString name);
     void                         AddPrinter(QPrinter *printer);
-
 };
 
 #endif // MAINWINDOW_H

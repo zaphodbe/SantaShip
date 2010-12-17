@@ -100,17 +100,19 @@ MainWindow::MainWindow(QWidget *parent) :
     // Select the first layout as default
     OnLayout(imageLayoutList.first());
 
+    // ToDo Make sure we resize the images when the graphicsView is resized.
+    connect(ui->splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(OnResize()));
+
     // Load the settings
     readSettings();
 }
 
 MainWindow::~MainWindow()
 {
-    // Make sure any settings are saved
-    writeSettings();
-
-    // And flush the settings writes
-    settings->sync();
+    if (saveSettingsOnExit) {
+        // Make sure any settings are saved
+        writeSettings();
+    }
 
     delete signalMapperLayout;
     delete signalMapperPrint;
@@ -266,7 +268,12 @@ void MainWindow::LoadImages()
         item->setScale(r1);
         item->setPos(x,y);
     }
+    OnResize();
+}
 
+void MainWindow::OnResize()
+{
+    // Make sure the correct portion of the graphicsScene is visible in the graphicsView.
     ui->graphicsView->setScene(graphicsScene);
     ui->graphicsView->fitInView(graphicsScene->sceneRect(),Qt::KeepAspectRatio);
     ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
@@ -455,10 +462,24 @@ QImageLayoutButton *MainWindow::newImageLayout(QString name)
 }
 
 /*
+ * Other events
+ */
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+
+    OnResize();
+}
+
+/*
  * Application settings
  */
 void MainWindow::writeSettings()
 {
+    int i, numItems;
+    int numPrintersSaved = 0;
+    QString settingBase;
+
     settings->setValue("MainWindow/fullscreen", isFullScreen());
     settings->setValue("MainWindow/maximize", isMaximized());
     settings->setValue("MainWindow/size", size());
@@ -469,14 +490,20 @@ void MainWindow::writeSettings()
     settings->setValue("ResetOnPrint", ui->checkBoxReset->isChecked());
     settings->setValue("PrintPreview", ui->checkBoxPreview->isChecked());
 
-    int i, numPrinters;
-    int numPrintersSaved = 0;
-    numPrinters = printerList.length();
-    for (i = 0; i < numPrinters; i++) {
+    numItems = ui->splitter->sizes().length();
+    for (i = 0; i < numItems; i++) {
+        settingBase = QString("Split");
+        settingBase.append(QString::number(i));
+        settings->setValue(settingBase, ui->splitter->sizes().at(i));
+    }
+    settings->setValue("NumSplits", numItems);
+
+    numItems = printerList.length();
+    for (i = 0; i < numItems; i++) {
         QPrinter *printer = printerList.at(i);
         if (!printer) continue; // Skip removed printers
 
-        QString   settingBase("Printer/");
+        settingBase = QString("Printer/");
         settingBase.append(QString::number(numPrintersSaved));
 //        qDebug() << "Saving" << settingBase << printer->printerName();
 
@@ -501,10 +528,16 @@ void MainWindow::writeSettings()
         numPrintersSaved ++;
     }
     settings->setValue("NumPrinters", numPrintersSaved);
+
+    // And flush the settings writes
+    settings->sync();
 }
 
 void MainWindow::readSettings()
 {
+    int i, numItems;
+    QString settingBase;
+
     if (settings->value("MainWindow/fullscreen", true).toBool()) {
         showFullScreen();
         ui->actionFull_Screen->setChecked(true);
@@ -531,12 +564,21 @@ void MainWindow::readSettings()
 
     ui->checkBoxReset->setChecked(settings->value("ResetOnPrint", true).toBool());
     ui->checkBoxPreview->setChecked(settings->value("PrintPreview", false).toBool());
+//    ui->splitter->setSizes(settings->value("Splits").);
 
-    int i, numPrinters;
-    numPrinters = settings->value("NumPrinters", 0).toInt();
-    for (i = 0; i < numPrinters; i++) {
+    numItems = settings->value("NumSplits", 3).toInt();
+    QList<int> sizeList;
+    for (i = 0; i < numItems; i++) {
+        settingBase = QString("Split");
+        settingBase.append(QString::number(i));
+        sizeList.append(settings->value(settingBase, (i + 1) * (720 / 3)).toInt());
+    }
+    ui->splitter->setSizes(sizeList);
+
+    numItems = settings->value("NumPrinters", 0).toInt();
+    for (i = 0; i < numItems; i++) {
         QPrinter *printer = new QPrinter();
-        QString   settingBase("Printer/");
+        settingBase = QString("Printer/");
         settingBase.append(QString::number(i));
 //        qDebug() << "Loading" << settingBase;
 
