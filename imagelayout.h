@@ -17,7 +17,10 @@ public:
     QRectF  getImageRect(int i)     {return imageList->at(i);};
 
     QRectF  rect;
+    void    setRect(QRectF rect);
+    void    setRect(qreal x, qreal y, qreal w, qreal h);
     void    addImage(QRectF rect);
+    void    addImage(qreal x, qreal y, qreal w, qreal h);
 
 signals:
 
@@ -25,6 +28,7 @@ public slots:
 
 private:
     QList<QRectF>    *imageList;
+    void              initLayout();
 
 };
 

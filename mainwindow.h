@@ -48,6 +48,7 @@ public slots:
     void OnLayout(QWidget *widget);
     void OnDeletePictures();
     void OnResize();
+    void OnDirLoaded(QString dir);
 
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);

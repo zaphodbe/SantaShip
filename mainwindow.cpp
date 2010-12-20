@@ -56,6 +56,8 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setNameFilterDisables(false);
     fileModel->setIconProvider(fileThumbnail);
     fileModel->setRootPath(dirName);
+    fileModel->sort(3);
+    connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
 
     // Initialize the list view to display the file system model
     ui->listView->setModel(fileModel);
@@ -85,17 +87,24 @@ MainWindow::MainWindow(QWidget *parent) :
     QImageLayoutButton *layoutButton;
 
     layoutButton = newImageLayout(QString("1 Up"));
+    layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,11000));
 
     layoutButton = newImageLayout(QString("2 Up"));
+    layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,5500));
     layoutButton->addImage(QRectF(0,5500,8500,5500));
 
     layoutButton = newImageLayout(QString("4 Up"));
+    layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,4250,5500));
     layoutButton->addImage(QRectF(4250,0,4250,5500));
     layoutButton->addImage(QRectF(0,5500,4250,5500));
     layoutButton->addImage(QRectF(4250,5500,4250,5500));
+
+    layoutButton = newImageLayout(QString("One 8x10"));
+    layoutButton->setRect(0,0,8500,11000);
+    layoutButton->addImage(QRectF(250,500,8000,10000));
 
     // Select the first layout as default
     OnLayout(imageLayoutList.first());
@@ -186,7 +195,7 @@ void MainWindow::LoadImages()
     graphicsScene->clear();
 
     // Draw a bounding rectangle for the page
-    graphicsScene->addRect(0,0,8500,11000,QPen(QColor(255,255,255)));
+    graphicsScene->addRect(imageLayoutCurr->rect,QPen(QColor(0,0,0)));
 
     // For Each image location in the layout place an image.
     // Repeat the image if there are more locations than selected images.
@@ -340,7 +349,6 @@ void MainWindow::OnAddPrinter()
 
 void MainWindow::OnPrinterRemove(int index)
 {
-    int i;
     // Set the current button
     QPushButton *button = printButtonList.at(index);
     qDebug() << __FUNCTION__ << button->text();
@@ -420,6 +428,17 @@ void MainWindow::paintRequested(QPrinter *printer)
 {
     QPainter painter(printer);
     graphicsScene->render(&painter);
+}
+
+void MainWindow::OnDirLoaded(QString dir)
+{
+    qDebug() << __FUNCTION__ << dir;
+    fileModel->sort(3);
+    ui->listView->scrollToBottom();
+    if (fileSelection->selectedIndexes().length() == 0) {
+        // Currently no Items are selected so select the latest
+//        ui->listView->sel
+    }
 }
 
 /*
