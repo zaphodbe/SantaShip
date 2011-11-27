@@ -26,8 +26,8 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="verticalLayout">
+      <widget class="QWidget" name="layoutWidget1">
+       <layout class="QVBoxLayout" name="verticalLayout1">
         <item>
          <widget class="QListView" name="listView">
           <property name="selectionMode">
@@ -83,7 +83,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidgetGraphics">
        <layout class="QVBoxLayout" name="verticalLayoutGraphics">
         <item>
          <widget class="QGraphicsView" name="graphicsView"/>

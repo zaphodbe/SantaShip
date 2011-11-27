@@ -290,6 +290,8 @@ void MainWindow::OnResize()
 
 void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection deselected)
 {
+    Q_UNUSED (selected);
+    Q_UNUSED (deselected);
 //    qDebug() << "selected" << selected;
 //    qDebug() << "deselected" << deselected;
     LoadImages();
@@ -456,6 +458,7 @@ void MainWindow::on_actionFull_Screen_triggered(bool checked)
 
 void MainWindow::on_actionSave_Settings_triggered(bool checked)
 {
+    Q_UNUSED (checked);
     writeSettings();
 }
 
