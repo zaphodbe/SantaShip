@@ -41,7 +41,6 @@ public slots:
     void OnSmaller();
     void OnBigger();
     void OnSelectionChanged(QItemSelection selected,QItemSelection deselected);
-    void OnAddPrinter();
     void OnPrinterRemove(int index);
     void OnPrinterSettings(int index);
     void OnPrint(int index);
@@ -50,6 +49,7 @@ public slots:
     void OnResize();
     void OnDirLoaded(QString dir);
 
+    void on_actionAdd_Printer_triggered(bool checked);
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);
     void on_actionSave_Settings_On_Exit_triggered(bool checked);
@@ -77,6 +77,7 @@ private:
     QAction                     *actionPrinterSettings;
     QAction                     *actionPrinterRemove;
     bool                         saveSettingsOnExit;
+    bool                         loadImagesDisabled;
 
     void LoadImages();
     QImageLayoutButton          *newImageLayout(QString name);

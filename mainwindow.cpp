@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QGraphicsItem>
 #include <QPrintPreviewDialog>
+#include <QMessageBox>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
@@ -14,7 +15,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    saveSettingsOnExit(0)
+    saveSettingsOnExit(0),
+    loadImagesDisabled(FALSE)
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
@@ -34,7 +36,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Setup the initial directory
     QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
-    qDebug() << "dirName" << dirName;
 
     // Setup a list of what files we can process
     QStringList filterList;
@@ -55,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setFilter(QDir::Files);
     fileModel->setNameFilterDisables(false);
     fileModel->setIconProvider(fileThumbnail);
+    qDebug() << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
     fileModel->sort(3);
     connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
@@ -179,7 +181,33 @@ void MainWindow::OnBigger()
 
 void MainWindow::OnDeletePictures()
 {
-    qDebug() << __FUNCTION__;
+    int imageIndex;
+
+    // Disable LoadImages
+    loadImagesDisabled = TRUE;
+
+    // Get list of selected files
+    QModelIndexList indexList = fileSelection->selectedIndexes();
+
+    // Display warning message box
+    QMessageBox msgBox(QMessageBox::Question,"Delete Selected Files", "Are you sure?", QMessageBox::Ok | QMessageBox::Cancel, this);
+    int result = msgBox.exec();
+    if (result == QMessageBox::Ok) {
+        //qDebug() << __FUNCTION__ << "Delete files";
+
+        // remove the files
+        for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
+            fileModel->remove(indexList.at(imageIndex));
+        }
+    }
+    // Clear the current selection
+    fileSelection->clear();
+
+    // Re-enable LoadImages
+    loadImagesDisabled = FALSE;
+
+    // Update the display
+    LoadImages();
 }
 
 void MainWindow::LoadImages()
@@ -189,6 +217,9 @@ void MainWindow::LoadImages()
     double imageAspect,layoutAspect;
 
     qDebug() << __FUNCTION__ << this->imageLayoutCurr->text();
+
+    if (loadImagesDisabled) return;
+
     QModelIndexList indexList = fileSelection->selectedIndexes();
 
     // Empty the scene
@@ -338,17 +369,6 @@ void MainWindow::AddPrinter(QPrinter *printer)
     connect(actionPrinterSettings, SIGNAL(triggered()), signalMapperPrinterSettings, SLOT(map()));
 }
 
-void MainWindow::OnAddPrinter()
-{
-//    qDebug() << __FUNCTION__;
-    QPrinter *printer = new QPrinter();
-    QPrintDialog printDialog(printer, this);
-    if (printDialog.exec() == QDialog::Accepted) {
-        qDebug() << "adding" << printer->printerName() << printer->resolution();
-        AddPrinter(printer);
-    }
-}
-
 void MainWindow::OnPrinterRemove(int index)
 {
     // Set the current button
@@ -439,6 +459,7 @@ void MainWindow::OnDirLoaded(QString dir)
     ui->listView->scrollToBottom();
     if (fileSelection->selectedIndexes().length() == 0) {
         // Currently no Items are selected so select the latest
+        qDebug() << __FUNCTION__ << "No files selected so autoselect the last one?";
 //        ui->listView->sel
     }
 }
@@ -446,6 +467,18 @@ void MainWindow::OnDirLoaded(QString dir)
 /*
  * Automatically connected action driven slots
  */
+void MainWindow::on_actionAdd_Printer_triggered(bool checked)
+{
+    Q_UNUSED(checked);
+//    qDebug() << __FUNCTION__;
+    QPrinter *printer = new QPrinter();
+    QPrintDialog printDialog(printer, this);
+    if (printDialog.exec() == QDialog::Accepted) {
+        qDebug() << "adding" << printer->printerName() << printer->resolution();
+        AddPrinter(printer);
+    }
+}
+
 void MainWindow::on_actionFull_Screen_triggered(bool checked)
 {
     //qDebug() << __FUNCTION__;
@@ -575,11 +608,12 @@ void MainWindow::readSettings()
 
     // Setup the current directory
     QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
-    qDebug() << "dirName" << dirName;
     dirName = settings->value("CurrentDir", dirName).toString();
+    qDebug() << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
+    ui->listView->setRootIndex(fileModel->index(dirName));
 
     saveSettingsOnExit = settings->value("SaveSettingsOnExit", false).toBool();
     ui->actionSave_Settings_On_Exit->setChecked(saveSettingsOnExit);

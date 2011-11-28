@@ -100,13 +100,6 @@
       <widget class="QWidget" name="verticalLayoutWidget">
        <layout class="QVBoxLayout" name="verticalLayoutPrintButtons">
         <item>
-         <widget class="QPushButton" name="pushButtonAddPrinter">
-          <property name="text">
-           <string>Add Printer</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QCheckBox" name="checkBoxPreview">
           <property name="text">
            <string>Preview</string>
@@ -169,6 +162,7 @@
     <addaction name="actionFull_Screen"/>
     <addaction name="actionSave_Settings"/>
     <addaction name="actionSave_Settings_On_Exit"/>
+    <addaction name="actionAdd_Printer"/>
    </widget>
    <addaction name="menuSetup"/>
   </widget>
@@ -181,27 +175,17 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionAdd_Printer">
-   <property name="text">
-    <string>&amp;Add Printer</string>
-   </property>
-  </action>
-  <action name="actionRemove_Printer">
-   <property name="text">
-    <string>&amp;Remove Printer</string>
-   </property>
-  </action>
   <action name="actionFull_Screen">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Full Screen</string>
+    <string>&amp;Full Screen</string>
    </property>
   </action>
   <action name="actionSave_Settings">
    <property name="text">
-    <string>Save Settings</string>
+    <string>&amp;Save Settings</string>
    </property>
   </action>
   <action name="actionSave_Settings_On_Exit">
@@ -209,7 +193,12 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save Settings On Exit</string>
+    <string>Save Settings On &amp;Exit</string>
+   </property>
+  </action>
+  <action name="actionAdd_Printer">
+   <property name="text">
+    <string>&amp;Add Printer</string>
    </property>
   </action>
  </widget>
@@ -261,22 +250,6 @@
     <hint type="destinationlabel">
      <x>246</x>
      <y>351</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButtonAddPrinter</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>OnAddPrinter()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>785</x>
-     <y>180</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>818</x>
-     <y>148</y>
     </hint>
    </hints>
   </connection>
