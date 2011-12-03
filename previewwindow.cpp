@@ -20,6 +20,7 @@ PreviewWindow::PreviewWindow(QWidget *parent) :
 
 PreviewWindow::~PreviewWindow()
 {
+    delete graphicsScene;
     delete ui;
 }
 
@@ -42,7 +43,7 @@ void PreviewWindow::LoadImages()
     bool imageLandscape,layoutLandscape;
     double imageAspect,layoutAspect;
 
-    qDebug() << __FUNCTION__;
+    qDebug() << __FILE__ << __FUNCTION__;
 
     if (loadImagesDisabled) return;
 
@@ -50,7 +51,7 @@ void PreviewWindow::LoadImages()
     graphicsScene->clear();
 
     // Draw a bounding rectangle for the page
-    graphicsScene->addRect(QRect(0,0,8000,6000),QPen(QColor(0,0,0)));
+    graphicsScene->addRect(QRectF(0.0,0.0,8000.0,6000.0),QPen(QColor(0,0,0)));
 
 #if 0
     // Get the list of images to load
@@ -143,7 +144,7 @@ void PreviewWindow::LoadImages()
 
 void PreviewWindow::OnResize()
 {
-    qDebug() << __FUNCTION__;
+//    qDebug() << __FILE__ << __FUNCTION__;
 
     // Make sure the correct portion of the graphicsScene is visible in the graphicsView.
     ui->graphicsView->setScene(graphicsScene);
@@ -153,7 +154,7 @@ void PreviewWindow::OnResize()
 
 void PreviewWindow::OnDirLoaded(QString dir)
 {
-    qDebug() << __FUNCTION__ << dir;
+//    qDebug() << __FILE__ << __FUNCTION__ << dir;
 //    fileModel->sort(3);
 //    ui->listView->scrollToBottom();
 }

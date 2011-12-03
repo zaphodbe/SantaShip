@@ -322,6 +322,8 @@ void MainWindow::LoadImages()
 
 void MainWindow::OnResize()
 {
+    qDebug() << __FILE__ << __FUNCTION__;
+
     // Make sure the correct portion of the graphicsScene is visible in the graphicsView.
     ui->graphicsView->setScene(graphicsScene);
     ui->graphicsView->fitInView(graphicsScene->sceneRect(),Qt::KeepAspectRatio);
@@ -463,7 +465,7 @@ void MainWindow::paintRequested(QPrinter *printer)
 
 void MainWindow::OnDirLoaded(QString dir)
 {
-    qDebug() << __FUNCTION__ << dir;
+    qDebug() << __FILE__ << __FUNCTION__ << dir;
     fileModel->sort(3);
     ui->listView->scrollToBottom();
     if (fileSelection->selectedIndexes().length() == 0) {
@@ -486,7 +488,15 @@ void MainWindow::on_actionPreview_Window_triggered(bool checked)
 
         // Show the window
         previewWindow->show();
+
+        // Start sending directory updates to the preview window
+        connect(fileModel, SIGNAL(directoryLoaded(QString)), previewWindow, SLOT(OnDirLoaded(QString)));
+
     } else {
+        // Stop sending directory updates as the window will be hidden
+        disconnect(previewWindow, SLOT(OnDirLoaded(QString)));
+
+        // Hide the window don't destroy it we might want it again
         previewWindow->hide();
     }
 }
