@@ -28,6 +28,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // Start the ui engine
     ui->setupUi(this);
 
+    // Create the preview window container
+    previewWindow = new PreviewWindow(this);
+
     // Setup the right click actions that we will add to the buttons
     actionDeletePictures = new QAction(tr("Delete Selected"),this);
     connect(actionDeletePictures, SIGNAL(triggered()), this, SLOT(OnDeletePictures()));
@@ -518,8 +521,14 @@ void MainWindow::on_actionFull_Screen_triggered(bool checked)
     //qDebug() << __FUNCTION__;
     if (!checked) {
         showNormal();
+        if (previewWindow) {
+            previewWindow->showNormal();
+        }
     } else {
         showFullScreen();
+        if (previewWindow) {
+            previewWindow->showFullScreen();
+        }
     }
 }
 
@@ -579,6 +588,16 @@ void MainWindow::writeSettings()
     settings->setValue("ResetOnPrint", ui->checkBoxReset->isChecked());
     settings->setValue("PrintPreview", ui->checkBoxPreview->isChecked());
 
+    if (previewWindow) {
+        settings->setValue("PreviewWindow/enabled", previewWindow->isVisible());
+        settings->setValue("PreviewWindow/fullscreen", previewWindow->isFullScreen());
+        settings->setValue("PreviewWindow/maximize", previewWindow->isMaximized());
+        settings->setValue("PreviewWindow/size", previewWindow->size());
+        settings->setValue("PreviewWindow/pos", previewWindow->pos());
+    } else {
+        settings->setValue("PreviewWindow/enabled", FALSE);
+    }
+
     numItems = ui->splitter->sizes().length();
     for (i = 0; i < numItems; i++) {
         settingBase = QString("Split");
@@ -627,6 +646,9 @@ void MainWindow::readSettings()
     int i, numItems;
     QString settingBase;
 
+    // Load MainWindow settings
+    resize(settings->value("MainWindow/size", QSize(720,480)).toSize());
+    move(settings->value("MainWindow/pos", QPoint(100,100)).toPoint());
     if (settings->value("MainWindow/fullscreen", true).toBool()) {
         showFullScreen();
         ui->actionFull_Screen->setChecked(true);
@@ -635,9 +657,21 @@ void MainWindow::readSettings()
         ui->actionFull_Screen->setChecked(false);
     } else {
         showNormal();
-        resize(settings->value("MainWindow/size", QSize(720,480)).toSize());
-        move(settings->value("MainWindow/pos", QPoint(100,100)).toPoint());
         ui->actionFull_Screen->setChecked(false);
+    }
+
+    // Load PreviewWindow settings
+    if (previewWindow) {
+        previewWindow->setVisible(settings->value("PreviewWindow/enabled", FALSE).toBool());
+        previewWindow->resize(settings->value("PreviewWindow/size", QSize(720,480)).toSize());
+        previewWindow->move(settings->value("PreviewWindow/pos", QPoint(300,300)).toPoint());
+        if (settings->value("PreviewWindow/fullscreen", true).toBool()) {
+            previewWindow->showFullScreen();
+        } else if (settings->value("PreviewWindow/maximize", true).toBool()) {
+            previewWindow->showMaximized();
+        } else {
+            previewWindow->showNormal();
+        }
     }
 
     // Setup the current directory
