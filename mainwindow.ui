@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Santa Ship Photo</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
@@ -163,6 +163,7 @@
     <addaction name="actionSave_Settings"/>
     <addaction name="actionSave_Settings_On_Exit"/>
     <addaction name="actionAdd_Printer"/>
+    <addaction name="actionPreview_Window"/>
    </widget>
    <addaction name="menuSetup"/>
   </widget>
@@ -199,6 +200,14 @@
   <action name="actionAdd_Printer">
    <property name="text">
     <string>&amp;Add Printer</string>
+   </property>
+  </action>
+  <action name="actionPreview_Window">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Preview Window</string>
    </property>
   </action>
  </widget>

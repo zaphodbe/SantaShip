@@ -18,6 +18,7 @@
 
 #include "filethumbnailprovider.h"
 #include "imagelayout.h"
+#include "previewwindow.h"
 
 namespace Ui {
     class MainWindow;
@@ -53,6 +54,7 @@ public slots:
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);
     void on_actionSave_Settings_On_Exit_triggered(bool checked);
+    void on_actionPreview_Window_triggered(bool checked);
 
     void paintRequested(QPrinter* printer);
     void writeSettings();
@@ -78,6 +80,7 @@ private:
     QAction                     *actionPrinterRemove;
     bool                         saveSettingsOnExit;
     bool                         loadImagesDisabled;
+    PreviewWindow               *previewWindow;
 
     void LoadImages();
     QImageLayoutButton          *newImageLayout(QString name);

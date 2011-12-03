@@ -15,8 +15,12 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    fileModel(NULL),
+    fileSelection(NULL),
+    fileThumbnail(NULL),
     saveSettingsOnExit(0),
-    loadImagesDisabled(FALSE)
+    loadImagesDisabled(FALSE),
+    previewWindow(NULL)
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
@@ -123,6 +127,11 @@ MainWindow::~MainWindow()
     if (saveSettingsOnExit) {
         // Make sure any settings are saved
         writeSettings();
+    }
+
+    if (previewWindow) {
+        delete previewWindow;
+        previewWindow = NULL;
     }
 
     delete signalMapperLayout;
@@ -467,6 +476,21 @@ void MainWindow::OnDirLoaded(QString dir)
 /*
  * Automatically connected action driven slots
  */
+void MainWindow::on_actionPreview_Window_triggered(bool checked)
+{
+    qDebug() << __FUNCTION__;
+    if (checked) {
+        // Create the preview window if there isn't one
+        if (!previewWindow)
+            previewWindow = new PreviewWindow(this);
+
+        // Show the window
+        previewWindow->show();
+    } else {
+        previewWindow->hide();
+    }
+}
+
 void MainWindow::on_actionAdd_Printer_triggered(bool checked)
 {
     Q_UNUSED(checked);
