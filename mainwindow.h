@@ -82,7 +82,7 @@ private:
     bool                         loadImagesDisabled;
     PreviewWindow               *previewWindow;
 
-    void LoadImages();
+    void                         LoadImages();
     QImageLayoutButton          *newImageLayout(QString name);
     void                         AddPrinter(QPrinter *printer);
 };

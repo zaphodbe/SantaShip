@@ -28,9 +28,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // Start the ui engine
     ui->setupUi(this);
 
-    // Create the preview window container
-    previewWindow = new PreviewWindow(this);
-
     // Setup the right click actions that we will add to the buttons
     actionDeletePictures = new QAction(tr("Delete Selected"),this);
     connect(actionDeletePictures, SIGNAL(triggered()), this, SLOT(OnDeletePictures()));
@@ -67,6 +64,12 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setRootPath(dirName);
     fileModel->sort(3);
     connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
+
+    // Create the preview window container
+    previewWindow = new PreviewWindow(fileModel, this);
+
+    // Start sending directory updates to the preview window
+//    connect(fileModel, SIGNAL(directoryLoaded(QString)), previewWindow, SLOT(OnDirLoaded(QString)));
 
     // Initialize the list view to display the file system model
     ui->listView->setModel(fileModel);
@@ -250,6 +253,8 @@ void MainWindow::LoadImages()
 
         // Load the image into a pixmap
         QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
+        if (pixmap.isNull()) continue;
+
         imageAspect = pixmap.width() / pixmap.height();
 //        qDebug() << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << pixmap.width() << "x" << pixmap.height();
 
@@ -476,6 +481,11 @@ void MainWindow::OnDirLoaded(QString dir)
         qDebug() << __FUNCTION__ << "No files selected so autoselect the last one?";
 //        ui->listView->sel
     }
+
+    if (previewWindow) {
+        previewWindow->setFileSystemModel(fileModel);
+        previewWindow->OnDirLoaded(dir);
+    }
 }
 
 /*
@@ -485,20 +495,9 @@ void MainWindow::on_actionPreview_Window_triggered(bool checked)
 {
     qDebug() << __FUNCTION__;
     if (checked) {
-        // Create the preview window if there isn't one
-        if (!previewWindow)
-            previewWindow = new PreviewWindow(this);
-
         // Show the window
         previewWindow->show();
-
-        // Start sending directory updates to the preview window
-        connect(fileModel, SIGNAL(directoryLoaded(QString)), previewWindow, SLOT(OnDirLoaded(QString)));
-
     } else {
-        // Stop sending directory updates as the window will be hidden
-        disconnect(previewWindow, SLOT(OnDirLoaded(QString)));
-
         // Hide the window don't destroy it we might want it again
         previewWindow->hide();
     }
@@ -672,6 +671,8 @@ void MainWindow::readSettings()
         } else {
             previewWindow->showNormal();
         }
+
+        ui->actionPreview_Window->setChecked(previewWindow->isVisible());
     }
 
     // Setup the current directory

@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QGraphicsScene>
+#include <QFileSystemModel>
+
+#include "imagelayout.h"
 
 namespace Ui {
     class PreviewWindow;
@@ -13,8 +16,11 @@ class PreviewWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit PreviewWindow(QWidget *parent = 0);
+    explicit PreviewWindow(QFileSystemModel* fileModel, QWidget *parent = 0);
     ~PreviewWindow();
+
+    void setFileSystemModel(QFileSystemModel*   fileModel)  {this->fileModel = fileModel;};
+    QFileSystemModel* getFileSystemModel()                  {return(this->fileModel);};
 
 protected:
     void resizeEvent(QResizeEvent *event);
@@ -25,10 +31,12 @@ public slots:
 
 private:
     Ui::PreviewWindow           *ui;
+    QFileSystemModel            *fileModel;
     QGraphicsScene              *graphicsScene;
-    bool                         loadImagesDisabled;
+    QList<QImageLayoutButton*>   imageLayoutList;
+    QImageLayoutButton          *imageLayoutCurr;
 
-    void LoadImages();
+    QImageLayoutButton          *newImageLayout(QString name);
 };
 
 #endif // PREVIEWWINDOW_H

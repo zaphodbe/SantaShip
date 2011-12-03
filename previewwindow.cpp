@@ -2,11 +2,12 @@
 #include "ui_previewwindow.h"
 
 #include <QDebug>
+#include <QGraphicsItem>
 
-PreviewWindow::PreviewWindow(QWidget *parent) :
+PreviewWindow::PreviewWindow(QFileSystemModel* fileModel, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::PreviewWindow),
-    loadImagesDisabled(FALSE)
+    fileModel(fileModel)
 {
     // Start the ui engine
     ui->setupUi(this);
@@ -14,14 +15,40 @@ PreviewWindow::PreviewWindow(QWidget *parent) :
     // Setup the graphics scene to paint the images in
     graphicsScene = new QGraphicsScene(this);
 
-    // Load the latest images
-    LoadImages();
+    // Setup the Layout.
+    // ToDo load this from discription files
+    QImageLayoutButton *layoutButton;
+
+    layoutButton = newImageLayout(QString("Preview"));
+    layoutButton->setRect(0,0,8000,6000);  // Just something 4:3 aspect ratio
+    layoutButton->addImage(QRectF(0,0,4000,3000));
+    layoutButton->addImage(QRectF(4000,0,4000,3000));
+    layoutButton->addImage(QRectF(0,3000,4000,3000));
+    layoutButton->addImage(QRectF(4000,3000,4000,3000));
+    layoutButton->addImage(QRectF(2000,1500,4000,3000));
+    imageLayoutCurr = layoutButton;
 }
 
 PreviewWindow::~PreviewWindow()
 {
     delete graphicsScene;
     delete ui;
+}
+
+/*
+ * Private functions
+ */
+QImageLayoutButton *PreviewWindow::newImageLayout(QString name)
+{
+    QImageLayoutButton *layoutButton;
+
+    layoutButton = new QImageLayoutButton(name);
+    imageLayoutList.append(layoutButton);
+//    ui->gridLayoutLayoutButtons->addWidget(layoutButton,0,imageLayoutList.length());
+//    signalMapperLayout->setMapping(layoutButton,layoutButton);
+//    connect(layoutButton, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
+
+    return layoutButton;
 }
 
 /*
@@ -37,25 +64,45 @@ void PreviewWindow::resizeEvent(QResizeEvent *event)
 /*
  * Normal Event driven slots.
  */
-void PreviewWindow::LoadImages()
+void PreviewWindow::OnResize()
 {
+//    qDebug() << __FILE__ << __FUNCTION__;
+
+    // Make sure the correct portion of the graphicsScene is visible in the graphicsView.
+    ui->graphicsView->setScene(graphicsScene);
+    ui->graphicsView->fitInView(graphicsScene->sceneRect(),Qt::KeepAspectRatio);
+    ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
+}
+
+void PreviewWindow::OnDirLoaded(QString dir)
+{
+    qDebug() << __FILE__ << __FUNCTION__ << dir;
+    fileModel->sort(3);
+
     int imageIndex,layoutIndex;
     bool imageLandscape,layoutLandscape;
     double imageAspect,layoutAspect;
-
-    qDebug() << __FILE__ << __FUNCTION__;
-
-    if (loadImagesDisabled) return;
 
     // Empty the scene
     graphicsScene->clear();
 
     // Draw a bounding rectangle for the page
-    graphicsScene->addRect(QRectF(0.0,0.0,8000.0,6000.0),QPen(QColor(0,0,0)));
+    graphicsScene->addRect(imageLayoutCurr->rect,QPen(QColor(0,0,0)));
 
-#if 0
     // Get the list of images to load
-    QModelIndexList indexList = fileSelection->selectedIndexes();
+//    QModelIndexList indexList = fileSelection->selectedIndexes();
+    QModelIndexList indexList;
+
+    qDebug() << "rows" << fileModel->rowCount();
+    qDebug() << "cols" << fileModel->columnCount();
+
+    for (imageIndex = fileModel->rowCount() - imageLayoutCurr->getImageCnt(); imageIndex < fileModel->rowCount(); imageIndex++) {
+        indexList.append(fileModel->index(imageIndex, 0));
+    }
+
+//    for (layoutIndex = 0; layoutIndex < imageLayoutCurr->getImageCnt(); layoutIndex++) {
+//        indexList.append(fileModel->index());
+//    }
 
     // For Each image location in the layout place an image.
     // Repeat the image if there are more locations than selected images.
@@ -67,6 +114,8 @@ void PreviewWindow::LoadImages()
 
         // Load the image into a pixmap
         QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
+        if (pixmap.isNull()) continue;
+
         imageAspect = pixmap.width() / pixmap.height();
 //        qDebug() << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << pixmap.width() << "x" << pixmap.height();
 
@@ -137,25 +186,7 @@ void PreviewWindow::LoadImages()
         item->setScale(r1);
         item->setPos(x,y);
     }
-#endif
 
     OnResize();
-}
-
-void PreviewWindow::OnResize()
-{
-//    qDebug() << __FILE__ << __FUNCTION__;
-
-    // Make sure the correct portion of the graphicsScene is visible in the graphicsView.
-    ui->graphicsView->setScene(graphicsScene);
-    ui->graphicsView->fitInView(graphicsScene->sceneRect(),Qt::KeepAspectRatio);
-    ui->graphicsView->ensureVisible(graphicsScene->sceneRect());
-}
-
-void PreviewWindow::OnDirLoaded(QString dir)
-{
-//    qDebug() << __FILE__ << __FUNCTION__ << dir;
-//    fileModel->sort(3);
-//    ui->listView->scrollToBottom();
 }
 
