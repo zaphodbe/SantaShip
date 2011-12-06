@@ -16,22 +16,17 @@ class PreviewWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit PreviewWindow(QFileSystemModel* fileModel, QWidget *parent = 0);
+    explicit PreviewWindow(QWidget *parent = 0);
     ~PreviewWindow();
-
-    void setFileSystemModel(QFileSystemModel*   fileModel)  {this->fileModel = fileModel;};
-    QFileSystemModel* getFileSystemModel()                  {return(this->fileModel);};
 
 protected:
     void resizeEvent(QResizeEvent *event);
 
 public slots:
     void OnResize();
-    void OnDirLoaded(QString dir);
 
-private:
+public:
     Ui::PreviewWindow           *ui;
-    QFileSystemModel            *fileModel;
     QGraphicsScene              *graphicsScene;
     QList<QImageLayoutButton*>   imageLayoutList;
     QImageLayoutButton          *imageLayoutCurr;

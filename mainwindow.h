@@ -82,9 +82,10 @@ private:
     bool                         loadImagesDisabled;
     PreviewWindow               *previewWindow;
 
-    void                         LoadImages();
+    void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(QString name);
     void                         AddPrinter(QPrinter *printer);
+    void                         loadPreviewWindowContents(QString dir);
 };
 
 #endif // MAINWINDOW_H

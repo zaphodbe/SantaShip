@@ -6,6 +6,7 @@
 #include <QGraphicsItem>
 #include <QPrintPreviewDialog>
 #include <QMessageBox>
+#include <QDirModel>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
@@ -20,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileThumbnail(NULL),
     saveSettingsOnExit(0),
     loadImagesDisabled(FALSE),
-    previewWindow(NULL)
+    previewWindow(new PreviewWindow(this))
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
@@ -64,9 +65,6 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setRootPath(dirName);
     fileModel->sort(3);
     connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
-
-    // Create the preview window container
-    previewWindow = new PreviewWindow(fileModel, this);
 
     // Start sending directory updates to the preview window
 //    connect(fileModel, SIGNAL(directoryLoaded(QString)), previewWindow, SLOT(OnDirLoaded(QString)));
@@ -135,11 +133,7 @@ MainWindow::~MainWindow()
         writeSettings();
     }
 
-    if (previewWindow) {
-        delete previewWindow;
-        previewWindow = NULL;
-    }
-
+    delete previewWindow;
     delete signalMapperLayout;
     delete signalMapperPrint;
     delete graphicsScene;
@@ -222,20 +216,21 @@ void MainWindow::OnDeletePictures()
     loadImagesDisabled = FALSE;
 
     // Update the display
-    LoadImages();
+    LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+    OnResize();
 }
 
-void MainWindow::LoadImages()
+void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr)
 {
     int imageIndex,layoutIndex;
     bool imageLandscape,layoutLandscape;
     double imageAspect,layoutAspect;
 
-    qDebug() << __FUNCTION__ << this->imageLayoutCurr->text();
+//    qDebug() << __FUNCTION__ << this->imageLayoutCurr->text();
 
     if (loadImagesDisabled) return;
 
-    QModelIndexList indexList = fileSelection->selectedIndexes();
+//    QModelIndexList indexList = fileSelection->selectedIndexes();
 
     // Empty the scene
     graphicsScene->clear();
@@ -325,7 +320,6 @@ void MainWindow::LoadImages()
         item->setScale(r1);
         item->setPos(x,y);
     }
-    OnResize();
 }
 
 void MainWindow::OnResize()
@@ -344,7 +338,8 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
     Q_UNUSED (deselected);
 //    qDebug() << "selected" << selected;
 //    qDebug() << "deselected" << deselected;
-    LoadImages();
+    LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+    OnResize();
 }
 
 void MainWindow::OnLayout(QWidget *widget)
@@ -361,7 +356,8 @@ void MainWindow::OnLayout(QWidget *widget)
         imageLayout->setEnabled(imageLayout != imageLayoutCurr);
     }
 
-    LoadImages();
+    LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+    OnResize();
 }
 
 void MainWindow::AddPrinter(QPrinter *printer)
@@ -461,7 +457,8 @@ void MainWindow::OnPrint(int index)
         fileSelection->clear();
 
         // Update the display
-        LoadImages();
+        LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+        OnResize();
     }
 }
 
@@ -482,9 +479,29 @@ void MainWindow::OnDirLoaded(QString dir)
 //        ui->listView->sel
     }
 
-    if (previewWindow) {
-        previewWindow->setFileSystemModel(fileModel);
-        previewWindow->OnDirLoaded(dir);
+    loadPreviewWindowContents(dir);
+}
+
+void MainWindow::loadPreviewWindowContents(QString dir)
+{
+    qDebug() << __FILE__ << __FUNCTION__ << dir;
+    if (previewWindow->isVisible()) {
+        QModelIndex index = fileModel->index(dir);
+        int numRows = fileModel->rowCount(index);
+
+        // Figure out the start of the last n that will be displayed
+        int startRow = numRows - previewWindow->imageLayoutCurr->getImageCnt();
+        if (startRow < 0) startRow = 0;
+
+        // Create a list of them so we can use the LoadImages method
+        QModelIndexList indexList;
+        for (int row = startRow; row < numRows; row++) {
+            indexList.append(fileModel->index(row,0,index));
+        }
+
+        // Load the images onto the preview window.
+        LoadImages(previewWindow->graphicsScene, indexList, previewWindow->imageLayoutCurr);
+        previewWindow->OnResize();
     }
 }
 
@@ -520,14 +537,10 @@ void MainWindow::on_actionFull_Screen_triggered(bool checked)
     //qDebug() << __FUNCTION__;
     if (!checked) {
         showNormal();
-        if (previewWindow) {
-            previewWindow->showNormal();
-        }
+        previewWindow->showNormal();
     } else {
         showFullScreen();
-        if (previewWindow) {
-            previewWindow->showFullScreen();
-        }
+        previewWindow->showFullScreen();
     }
 }
 
@@ -587,15 +600,11 @@ void MainWindow::writeSettings()
     settings->setValue("ResetOnPrint", ui->checkBoxReset->isChecked());
     settings->setValue("PrintPreview", ui->checkBoxPreview->isChecked());
 
-    if (previewWindow) {
-        settings->setValue("PreviewWindow/enabled", previewWindow->isVisible());
-        settings->setValue("PreviewWindow/fullscreen", previewWindow->isFullScreen());
-        settings->setValue("PreviewWindow/maximize", previewWindow->isMaximized());
-        settings->setValue("PreviewWindow/size", previewWindow->size());
-        settings->setValue("PreviewWindow/pos", previewWindow->pos());
-    } else {
-        settings->setValue("PreviewWindow/enabled", FALSE);
-    }
+    settings->setValue("PreviewWindow/enabled", previewWindow->isVisible());
+    settings->setValue("PreviewWindow/fullscreen", previewWindow->isFullScreen());
+    settings->setValue("PreviewWindow/maximize", previewWindow->isMaximized());
+    settings->setValue("PreviewWindow/size", previewWindow->size());
+    settings->setValue("PreviewWindow/pos", previewWindow->pos());
 
     numItems = ui->splitter->sizes().length();
     for (i = 0; i < numItems; i++) {
@@ -660,20 +669,18 @@ void MainWindow::readSettings()
     }
 
     // Load PreviewWindow settings
-    if (previewWindow) {
-        previewWindow->setVisible(settings->value("PreviewWindow/enabled", FALSE).toBool());
-        previewWindow->resize(settings->value("PreviewWindow/size", QSize(720,480)).toSize());
-        previewWindow->move(settings->value("PreviewWindow/pos", QPoint(300,300)).toPoint());
-        if (settings->value("PreviewWindow/fullscreen", true).toBool()) {
-            previewWindow->showFullScreen();
-        } else if (settings->value("PreviewWindow/maximize", true).toBool()) {
-            previewWindow->showMaximized();
-        } else {
-            previewWindow->showNormal();
-        }
-
-        ui->actionPreview_Window->setChecked(previewWindow->isVisible());
+    previewWindow->setVisible(settings->value("PreviewWindow/enabled", FALSE).toBool());
+    previewWindow->resize(settings->value("PreviewWindow/size", QSize(720,480)).toSize());
+    previewWindow->move(settings->value("PreviewWindow/pos", QPoint(300,300)).toPoint());
+    if (settings->value("PreviewWindow/fullscreen", true).toBool()) {
+        previewWindow->showFullScreen();
+    } else if (settings->value("PreviewWindow/maximize", true).toBool()) {
+        previewWindow->showMaximized();
+    } else {
+        previewWindow->showNormal();
     }
+
+    ui->actionPreview_Window->setChecked(previewWindow->isVisible());
 
     // Setup the current directory
     QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
