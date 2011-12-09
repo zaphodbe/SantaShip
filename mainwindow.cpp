@@ -431,38 +431,29 @@ void MainWindow::OnPrint(int index)
     QPrinter *printer = printerList.at(index);
     printer->setCopyCount(ui->spinBoxCopies->value());
 
-    qDebug() << __FUNCTION__ << printer->printerName();
+    if (fileSelection->hasSelection()) {
+        qDebug() << __FUNCTION__ << printer->printerName();
 
-    // Do the printing here
+        // Do the printing here
 
-    if (ui->checkBoxPreview->checkState() == Qt::Checked) {
-        // Do a preview if checked
-        QPrintPreviewDialog printPreview(printer);
-        connect(&printPreview, SIGNAL(paintRequested(QPrinter*)), this, SLOT(paintRequested(QPrinter*)));
-        printPreview.exec();
-        disconnect(this, SLOT(paintRequested(QPrinter*)));
-    } else {
-        // Else do a print
-        QPrintDialog printDialog(printer, this);
-        if (printDialog.exec() == QDialog::Accepted) {
-            paintRequested(printer);
+        if (ui->checkBoxPreview->checkState() == Qt::Checked) {
+            // Do a preview if checked
+            QPrintPreviewDialog printPreview(printer);
+            connect(&printPreview, SIGNAL(paintRequested(QPrinter*)), this, SLOT(paintRequested(QPrinter*)));
+            printPreview.exec();
+            disconnect(this, SLOT(paintRequested(QPrinter*)));
+        } else {
+            // Else do a print
+            QPrintDialog printDialog(printer, this);
+            if (printDialog.exec() == QDialog::Accepted) {
+                paintRequested(printer);
+            }
         }
     }
 
     // If Reset is checked clear the settings
     if (ui->checkBoxReset->checkState() == Qt::Checked) {
-        // Set the copies count back to 1
-        ui->spinBoxCopies->setValue(1);
-
-        // Set the layout back to default (first entry)
-        OnLayout(imageLayoutList.first());
-
-        // Clear the current selection
-        fileSelection->clear();
-
-        // Update the display
-        LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
-        OnResize();
+        OnDefaults();
     }
 }
 
@@ -506,6 +497,34 @@ void MainWindow::loadPreviewWindowContents(QString dir)
         // Load the images onto the preview window.
         LoadImages(previewWindow->graphicsScene, indexList, previewWindow->imageLayoutCurr);
         previewWindow->OnResize();
+    }
+}
+
+void MainWindow::OnDefaults()
+{
+    // Set the E-Mail back
+    ui->lineEditEmail->setText(QString("E-Mail Address"));
+
+    // Set the copies count back to 1
+    ui->spinBoxCopies->setValue(1);
+
+    // Set the layout back to default (first entry)
+    OnLayout(imageLayoutList.first());
+
+    // Clear the current selection
+    fileSelection->clear();
+
+    // Update the display
+    LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+    OnResize();
+}
+
+void MainWindow::OnEMail()
+{
+    if (ui->lineEditEmail->text() != QString("E-Mail Address") &&
+            fileSelection->hasSelection()) {
+        // Only do E-Mail if address entered and pictures are selected
+        qDebug() << "Send E-Mail to " << ui->lineEditEmail->text();
     }
 }
 

@@ -49,6 +49,8 @@ public slots:
     void OnDeletePictures();
     void OnResize();
     void OnDirLoaded(QString dir);
+    void OnDefaults();
+    void OnEMail();
 
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionFull_Screen_triggered(bool checked);

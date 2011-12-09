@@ -100,6 +100,36 @@
       <widget class="QWidget" name="verticalLayoutWidget">
        <layout class="QVBoxLayout" name="verticalLayoutPrintButtons">
         <item>
+         <widget class="QLineEdit" name="lineEditEmail">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>E-Mail Address</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonEmail">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>E-Mail</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonDefaults">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Defaults</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="checkBoxPreview">
           <property name="text">
            <string>Preview</string>
@@ -224,8 +254,8 @@
    <slot>OnDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>133</x>
-     <y>300</y>
+     <x>117</x>
+     <y>342</y>
     </hint>
     <hint type="destinationlabel">
      <x>133</x>
@@ -240,8 +270,8 @@
    <slot>OnBigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>199</x>
-     <y>305</y>
+     <x>231</x>
+     <y>342</y>
     </hint>
     <hint type="destinationlabel">
      <x>195</x>
@@ -256,12 +286,44 @@
    <slot>OnSmaller()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>249</x>
-     <y>303</y>
+     <x>344</x>
+     <y>342</y>
     </hint>
     <hint type="destinationlabel">
      <x>246</x>
      <y>351</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButtonDefaults</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnDefaults()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>794</x>
+     <y>95</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>820</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButtonEmail</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnEMail()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>781</x>
+     <y>67</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>820</x>
+     <y>67</y>
     </hint>
    </hints>
   </connection>
@@ -273,5 +335,7 @@
   <slot>OnMenu(QAction*)</slot>
   <slot>OnAddPrinter()</slot>
   <slot>OnLayout()</slot>
+  <slot>OnDefaults()</slot>
+  <slot>OnEMail()</slot>
  </slots>
 </ui>
