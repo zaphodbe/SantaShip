@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
+//    qDebug() << settings->fileName();
 
     // Start the ui engine
     ui->setupUi(this);
@@ -442,7 +443,10 @@ void MainWindow::OnPrint(int index)
         disconnect(this, SLOT(paintRequested(QPrinter*)));
     } else {
         // Else do a print
-        paintRequested(printer);
+        QPrintDialog printDialog(printer, this);
+        if (printDialog.exec() == QDialog::Accepted) {
+            paintRequested(printer);
+        }
     }
 
     // If Reset is checked clear the settings
@@ -523,13 +527,20 @@ void MainWindow::on_actionPreview_Window_triggered(bool checked)
 void MainWindow::on_actionAdd_Printer_triggered(bool checked)
 {
     Q_UNUSED(checked);
-//    qDebug() << __FUNCTION__;
+    qDebug() << __FUNCTION__;
     QPrinter *printer = new QPrinter();
+
     QPrintDialog printDialog(printer, this);
+//    qDebug() << "First call";
     if (printDialog.exec() == QDialog::Accepted) {
         qDebug() << "adding" << printer->printerName() << printer->resolution();
         AddPrinter(printer);
     }
+//    qDebug() << "Second call";
+//    if (printDialog.exec() == QDialog::Accepted) {
+//        qDebug() << "adding" << printer->printerName() << printer->resolution();
+//        AddPrinter(printer);
+//    }
 }
 
 void MainWindow::on_actionFull_Screen_triggered(bool checked)
@@ -670,16 +681,17 @@ void MainWindow::readSettings()
 
     // Load PreviewWindow settings
     previewWindow->setVisible(settings->value("PreviewWindow/enabled", FALSE).toBool());
-    previewWindow->resize(settings->value("PreviewWindow/size", QSize(720,480)).toSize());
-    previewWindow->move(settings->value("PreviewWindow/pos", QPoint(300,300)).toPoint());
-    if (settings->value("PreviewWindow/fullscreen", true).toBool()) {
-        previewWindow->showFullScreen();
-    } else if (settings->value("PreviewWindow/maximize", true).toBool()) {
-        previewWindow->showMaximized();
-    } else {
-        previewWindow->showNormal();
+    if (previewWindow->isVisible()) {
+        previewWindow->resize(settings->value("PreviewWindow/size", QSize(720,480)).toSize());
+        previewWindow->move(settings->value("PreviewWindow/pos", QPoint(300,300)).toPoint());
+        if (settings->value("PreviewWindow/fullscreen", true).toBool()) {
+            previewWindow->showFullScreen();
+        } else if (settings->value("PreviewWindow/maximize", true).toBool()) {
+            previewWindow->showMaximized();
+        } else {
+            previewWindow->showNormal();
+        }
     }
-
     ui->actionPreview_Window->setChecked(previewWindow->isVisible());
 
     // Setup the current directory

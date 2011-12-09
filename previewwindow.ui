@@ -45,40 +45,6 @@
     </item>
    </layout>
   </widget>
-  <action name="actionFull_Screen">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Full Screen</string>
-   </property>
-  </action>
-  <action name="actionSave_Settings">
-   <property name="text">
-    <string>&amp;Save Settings</string>
-   </property>
-  </action>
-  <action name="actionSave_Settings_On_Exit">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save Settings On &amp;Exit</string>
-   </property>
-  </action>
-  <action name="actionAdd_Printer">
-   <property name="text">
-    <string>&amp;Add Printer</string>
-   </property>
-  </action>
-  <action name="actionPreview_Window">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Preview Window</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
