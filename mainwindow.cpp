@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel(NULL),
     fileSelection(NULL),
     fileThumbnail(NULL),
-    saveSettingsOnExit(0),
+    changeEnable(false),
     loadImagesDisabled(FALSE),
     previewWindow(new PreviewWindow(this))
 {
@@ -75,6 +75,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->listView->setRootIndex(fileModel->index(dirName));
     ui->listView->addAction(actionDeletePictures);
     ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    ui->listView->setLayoutMode(QListView::Batched);
+    ui->listView->setBatchSize(10);
+    ui->listView->setUniformItemSizes(true);
 
     // Setup the class to track selections on the list view
     fileSelection = new QItemSelectionModel(fileModel);
@@ -129,11 +132,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    if (saveSettingsOnExit) {
-        // Make sure any settings are saved
-        writeSettings();
-    }
-
     delete previewWindow;
     delete signalMapperLayout;
     delete signalMapperPrint;
@@ -466,13 +464,15 @@ void MainWindow::paintRequested(QPrinter *printer)
 void MainWindow::OnDirLoaded(QString dir)
 {
     qDebug() << __FILE__ << __FUNCTION__ << dir;
-    fileModel->sort(3);
+//    fileModel->sort(3);
     ui->listView->scrollToBottom();
+#if 0
     if (fileSelection->selectedIndexes().length() == 0) {
         // Currently no Items are selected so select the latest
         qDebug() << __FUNCTION__ << "No files selected so autoselect the last one?";
 //        ui->listView->sel
     }
+#endif
 
     loadPreviewWindowContents(dir);
 }
@@ -480,7 +480,7 @@ void MainWindow::OnDirLoaded(QString dir)
 void MainWindow::loadPreviewWindowContents(QString dir)
 {
     qDebug() << __FILE__ << __FUNCTION__ << dir;
-    if (previewWindow->isVisible()) {
+    if (previewWindow && previewWindow->isVisible()) {
         QModelIndex index = fileModel->index(dir);
         int numRows = fileModel->rowCount(index);
 
@@ -580,9 +580,9 @@ void MainWindow::on_actionSave_Settings_triggered(bool checked)
     writeSettings();
 }
 
-void MainWindow::on_actionSave_Settings_On_Exit_triggered(bool checked)
+void MainWindow::on_actionChange_Enable_triggered(bool checked)
 {
-    saveSettingsOnExit = checked;
+    Q_UNUSED (checked);
 }
 
 /*
@@ -626,7 +626,6 @@ void MainWindow::writeSettings()
     settings->setValue("MainWindow/pos", pos());
     settings->setValue("CurrentDir", fileModel->rootPath());
     settings->setValue("ThumbNailSize", ui->listView->iconSize());
-    settings->setValue("SaveSettingsOnExit", saveSettingsOnExit);
     settings->setValue("ResetOnPrint", ui->checkBoxReset->isChecked());
     settings->setValue("PrintPreview", ui->checkBoxPreview->isChecked());
 
@@ -721,9 +720,6 @@ void MainWindow::readSettings()
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
     ui->listView->setRootIndex(fileModel->index(dirName));
-
-    saveSettingsOnExit = settings->value("SaveSettingsOnExit", false).toBool();
-    ui->actionSave_Settings_On_Exit->setChecked(saveSettingsOnExit);
 
     ui->checkBoxReset->setChecked(settings->value("ResetOnPrint", true).toBool());
     ui->checkBoxPreview->setChecked(settings->value("PrintPreview", false).toBool());

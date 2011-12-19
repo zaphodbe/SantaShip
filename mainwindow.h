@@ -55,8 +55,8 @@ public slots:
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);
-    void on_actionSave_Settings_On_Exit_triggered(bool checked);
     void on_actionPreview_Window_triggered(bool checked);
+    void on_actionChange_Enable_triggered(bool checked);
 
     void paintRequested(QPrinter* printer);
     void writeSettings();
@@ -80,7 +80,7 @@ private:
     QAction                     *actionDeletePictures;
     QAction                     *actionPrinterSettings;
     QAction                     *actionPrinterRemove;
-    bool                         saveSettingsOnExit;
+    bool                         changeEnable;
     bool                         loadImagesDisabled;
     PreviewWindow               *previewWindow;
 

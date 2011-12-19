@@ -57,6 +57,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QPushButton" name="pushButtonDir">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Change Directory</string>
             </property>
@@ -125,7 +128,7 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>Defaults</string>
+           <string>Clear Selection(s)</string>
           </property>
          </widget>
         </item>
@@ -182,16 +185,16 @@
      <x>0</x>
      <y>0</y>
      <width>825</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSetup">
     <property name="title">
      <string>&amp;Setup</string>
     </property>
+    <addaction name="actionChange_Enable"/>
     <addaction name="actionFull_Screen"/>
     <addaction name="actionSave_Settings"/>
-    <addaction name="actionSave_Settings_On_Exit"/>
     <addaction name="actionAdd_Printer"/>
     <addaction name="actionPreview_Window"/>
    </widget>
@@ -205,7 +208,7 @@
     <string>Full Screen</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+F</string>
+    <string>Meta+F</string>
    </property>
   </action>
   <action name="actionSave_Settings">
@@ -213,15 +216,7 @@
     <string>Save Settings</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="actionSave_Settings_On_Exit">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save Settings On Exit</string>
+    <string>Meta+S</string>
    </property>
   </action>
   <action name="actionAdd_Printer">
@@ -229,7 +224,7 @@
     <string>Add Printer</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+A</string>
+    <string>Meta+A</string>
    </property>
   </action>
   <action name="actionPreview_Window">
@@ -240,7 +235,15 @@
     <string>Preview Window</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+P</string>
+    <string>Meta+P</string>
+   </property>
+  </action>
+  <action name="actionChange_Enable">
+   <property name="text">
+    <string>Change Enable</string>
+   </property>
+   <property name="shortcut">
+    <string>Meta+E</string>
    </property>
   </action>
  </widget>
