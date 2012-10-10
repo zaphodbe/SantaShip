@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
-//    qDebug() << settings->fileName();
+//    qDebug() << __FILE__ << __FUNCTION__ << settings->fileName();
 
     // Start the ui engine
     ui->setupUi(this);
@@ -62,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setFilter(QDir::Files);
     fileModel->setNameFilterDisables(false);
     fileModel->setIconProvider(fileThumbnail);
-    qDebug() << __FUNCTION__ << "dirName" << dirName;
+    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
     fileModel->sort(3);
     connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
@@ -151,7 +151,7 @@ void MainWindow::OnDir()
 {
     QString directory = QFileDialog::getExistingDirectory(this,tr("Open Directory"),fileModel->rootPath());
 
-    qDebug() << "OnDir" << directory;
+    qDebug() << __FILE__ << __FUNCTION__ << directory;
     fileModel->setRootPath(directory);
 
     ui->listView->setRootIndex(fileModel->index(directory));
@@ -201,7 +201,7 @@ void MainWindow::OnDeletePictures()
     QMessageBox msgBox(QMessageBox::Question,"Delete Selected Files", "Are you sure?", QMessageBox::Ok | QMessageBox::Cancel, this);
     int result = msgBox.exec();
     if (result == QMessageBox::Ok) {
-        //qDebug() << __FUNCTION__ << "Delete files";
+        //qDebug() << __FILE__ << __FUNCTION__ << "Delete files";
 
         // remove the files
         for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
@@ -225,7 +225,7 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
     bool imageLandscape,layoutLandscape;
     double imageAspect,layoutAspect;
 
-//    qDebug() << __FUNCTION__ << this->imageLayoutCurr->text();
+//    qDebug() << __FILE__ << __FUNCTION__ << this->imageLayoutCurr->text();
 
     if (loadImagesDisabled) return;
 
@@ -250,7 +250,7 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
         if (pixmap.isNull()) continue;
 
         imageAspect = pixmap.width() / pixmap.height();
-//        qDebug() << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << pixmap.width() << "x" << pixmap.height();
+//        qDebug() << __FILE__ << __FUNCTION__ << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << pixmap.width() << "x" << pixmap.height();
 
         // Figure out image orientation
         if (imageAspect >= 1.0) {
@@ -335,8 +335,8 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
 {
     Q_UNUSED (selected);
     Q_UNUSED (deselected);
-//    qDebug() << "selected" << selected;
-//    qDebug() << "deselected" << deselected;
+//    qDebug() << __FILE__ << __FUNCTION__ << "selected" << selected;
+//    qDebug() << __FILE__ << __FUNCTION__ << "deselected" << deselected;
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
     OnResize();
 }
@@ -387,7 +387,7 @@ void MainWindow::OnPrinterRemove(int index)
 {
     // Set the current button
     QPushButton *button = printButtonList.at(index);
-    qDebug() << __FUNCTION__ << button->text();
+    qDebug() << __FILE__ << __FUNCTION__ << button->text();
 
     // Cleanup and remove the button
     ui->verticalLayoutPrintButtons->removeWidget(button);
@@ -417,7 +417,7 @@ void MainWindow::OnPrinterSettings(int index)
 {
     // Set the current button
     QPushButton *button = printButtonList.at(index);
-    qDebug() << __FUNCTION__ << button->text();
+    qDebug() << __FILE__ << __FUNCTION__ << button->text();
 
     // ToDo: Dialog only flashed and doesn't let you change anything
     QPrintDialog printDialog(printerList.at(index), this);
@@ -430,7 +430,7 @@ void MainWindow::OnPrint(int index)
     printer->setCopyCount(ui->spinBoxCopies->value());
 
     if (fileSelection->hasSelection()) {
-        qDebug() << __FUNCTION__ << printer->printerName();
+        qDebug() << __FILE__ << __FUNCTION__ << printer->printerName();
 
         // Do the printing here
 
@@ -469,7 +469,7 @@ void MainWindow::OnDirLoaded(QString dir)
 #if 0
     if (fileSelection->selectedIndexes().length() == 0) {
         // Currently no Items are selected so select the latest
-        qDebug() << __FUNCTION__ << "No files selected so autoselect the last one?";
+        qDebug() << __FILE__ << __FUNCTION__ << "No files selected so autoselect the last one?";
 //        ui->listView->sel
     }
 #endif
@@ -524,7 +524,7 @@ void MainWindow::OnEMail()
     if (ui->lineEditEmail->text() != QString("E-Mail Address") &&
             fileSelection->hasSelection()) {
         // Only do E-Mail if address entered and pictures are selected
-        qDebug() << "Send E-Mail to " << ui->lineEditEmail->text();
+        qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
     }
 }
 
@@ -533,7 +533,7 @@ void MainWindow::OnEMail()
  */
 void MainWindow::on_actionPreview_Window_triggered(bool checked)
 {
-    qDebug() << __FUNCTION__;
+    qDebug() << __FILE__ << __FUNCTION__;
     if (checked) {
         // Show the window
         previewWindow->show();
@@ -546,25 +546,25 @@ void MainWindow::on_actionPreview_Window_triggered(bool checked)
 void MainWindow::on_actionAdd_Printer_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    qDebug() << __FUNCTION__;
+    qDebug() << __FILE__ << __FUNCTION__;
     QPrinter *printer = new QPrinter();
 
     QPrintDialog printDialog(printer, this);
-//    qDebug() << "First call";
+//    qDebug() << __FILE__ << __FUNCTION__ << "First call";
     if (printDialog.exec() == QDialog::Accepted) {
-        qDebug() << "adding" << printer->printerName() << printer->resolution();
+        qDebug() << __FILE__ << __FUNCTION__ << "adding" << printer->printerName() << printer->resolution();
         AddPrinter(printer);
     }
-//    qDebug() << "Second call";
+//    qDebug() << __FILE__ << __FUNCTION__ << "Second call";
 //    if (printDialog.exec() == QDialog::Accepted) {
-//        qDebug() << "adding" << printer->printerName() << printer->resolution();
+//        qDebug() << __FILE__ << __FUNCTION__ << "adding" << printer->printerName() << printer->resolution();
 //        AddPrinter(printer);
 //    }
 }
 
 void MainWindow::on_actionFull_Screen_triggered(bool checked)
 {
-    //qDebug() << __FUNCTION__;
+    //qDebug() << __FILE__ << __FUNCTION__;
     if (!checked) {
         showNormal();
         previewWindow->showNormal();
@@ -650,7 +650,7 @@ void MainWindow::writeSettings()
 
         settingBase = QString("Printer/");
         settingBase.append(QString::number(numPrintersSaved));
-//        qDebug() << "Saving" << settingBase << printer->printerName();
+//        qDebug() << __FILE__ << __FUNCTION__ << "Saving" << settingBase << printer->printerName();
 
         settings->beginGroup(settingBase);
         settings->setValue("OutputFormat",printer->outputFormat());
@@ -715,7 +715,7 @@ void MainWindow::readSettings()
     // Setup the current directory
     QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
     dirName = settings->value("CurrentDir", dirName).toString();
-    qDebug() << __FUNCTION__ << "dirName" << dirName;
+    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
@@ -739,7 +739,7 @@ void MainWindow::readSettings()
         QPrinter *printer = new QPrinter();
         settingBase = QString("Printer/");
         settingBase.append(QString::number(i));
-//        qDebug() << "Loading" << settingBase;
+//        qDebug() << __FILE__ << __FUNCTION__ << "Loading" << settingBase;
 
         settings->beginGroup(settingBase);
         printer->setOutputFormat((QPrinter::OutputFormat) settings->value("OutputFormat").toInt());

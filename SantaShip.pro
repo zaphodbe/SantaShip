@@ -15,12 +15,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     filethumbnailprovider.cpp \
     imagelayout.cpp \
-    previewwindow.cpp
+    previewwindow.cpp \
+    myicon.cpp
 
 HEADERS  += mainwindow.h \
     filethumbnailprovider.h \
     imagelayout.h \
-    previewwindow.h
+    previewwindow.h \
+    myicon.h
 
 FORMS    += mainwindow.ui \
     previewwindow.ui
