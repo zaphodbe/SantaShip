@@ -583,6 +583,9 @@ void MainWindow::on_actionSave_Settings_triggered(bool checked)
 void MainWindow::on_actionChange_Enable_triggered(bool checked)
 {
     Q_UNUSED (checked);
+//    ui->menuSetup->activeAction()->setChecked(true);
+    qDebug() << __FILE__ << __FUNCTION__ << "Change Enabled" << ui->menuSetup->activeAction();
+    qDebug() << __FILE__ << __FUNCTION__ << "Change Enabled" << checked;
 }
 
 /*
