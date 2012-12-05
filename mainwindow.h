@@ -83,6 +83,8 @@ private:
     bool                         changeEnable;
     bool                         loadImagesDisabled;
     PreviewWindow               *previewWindow;
+    bool                         adminMode;
+    QString                      adminPassword;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(QString name);

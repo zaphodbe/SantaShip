@@ -20,8 +20,10 @@ MainWindow::MainWindow(QWidget *parent) :
     fileSelection(NULL),
     fileThumbnail(NULL),
     changeEnable(false),
-    loadImagesDisabled(FALSE),
-    previewWindow(new PreviewWindow(this))
+    loadImagesDisabled(false),
+    previewWindow(new PreviewWindow(this)),
+    adminMode(false),
+    adminPassword("")
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
@@ -583,9 +585,13 @@ void MainWindow::on_actionSave_Settings_triggered(bool checked)
 void MainWindow::on_actionChange_Enable_triggered(bool checked)
 {
     Q_UNUSED (checked);
-//    ui->menuSetup->activeAction()->setChecked(true);
-    qDebug() << __FILE__ << __FUNCTION__ << "Change Enabled" << ui->menuSetup->activeAction();
-    qDebug() << __FILE__ << __FUNCTION__ << "Change Enabled" << checked;
+    QAction *actClicked = (QAction*) this->sender();
+//    qDebug() << __FILE__ << __FUNCTION__ << "Change Enabled" << checked;
+
+    {
+        adminMode = ~adminMode;
+        actClicked->setChecked(false);
+    }
 }
 
 /*
@@ -631,6 +637,7 @@ void MainWindow::writeSettings()
     settings->setValue("ThumbNailSize", ui->listView->iconSize());
     settings->setValue("ResetOnPrint", ui->checkBoxReset->isChecked());
     settings->setValue("PrintPreview", ui->checkBoxPreview->isChecked());
+    settings->setValue("AdminPassword", adminPassword);
 
     settings->setValue("PreviewWindow/enabled", previewWindow->isVisible());
     settings->setValue("PreviewWindow/fullscreen", previewWindow->isFullScreen());
@@ -685,6 +692,9 @@ void MainWindow::readSettings()
 {
     int i, numItems;
     QString settingBase;
+
+    // Get the admin password if set
+    adminPassword = settings->value("AdminPassword", QString("")).toString();
 
     // Load MainWindow settings
     resize(settings->value("MainWindow/size", QSize(720,480)).toSize());
