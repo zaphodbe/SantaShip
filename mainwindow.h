@@ -32,6 +32,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    bool                         isAdminMode();
+
 protected:
     void resizeEvent(QResizeEvent *event);
 
@@ -90,6 +92,7 @@ private:
     QImageLayoutButton          *newImageLayout(QString name);
     void                         AddPrinter(QPrinter *printer);
     void                         loadPreviewWindowContents(QString dir);
+    QString                      getAdminPasswd();
 };
 
 #endif // MAINWINDOW_H

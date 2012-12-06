@@ -7,6 +7,7 @@
 #include <QPrintPreviewDialog>
 #include <QMessageBox>
 #include <QDirModel>
+#include <QInputDialog>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
@@ -588,10 +589,27 @@ void MainWindow::on_actionChange_Enable_triggered(bool checked)
     QAction *actClicked = (QAction*) this->sender();
 //    qDebug() << __FILE__ << __FUNCTION__ << "Change Enabled" << checked;
 
+    if (adminMode)
     {
-        adminMode = ~adminMode;
-        actClicked->setChecked(false);
+        // We are currently in adminMode so we need to get out.
+        adminMode = false;
     }
+    else
+    {
+        // We are not in adminMode so we need to get in.
+        bool    ok = false;
+        QString passwd = QInputDialog::getText(this, QString("Please enter admin password"), QString("Password"), QLineEdit::Password, QString(), &ok);
+        if (ok && passwd == adminPassword)
+        {
+            // User hit ok and passwd matches
+            adminMode = true;
+        }
+        else
+        {
+            adminMode = false;
+        }
+    }
+    actClicked->setChecked(adminMode);
 }
 
 /*
@@ -775,4 +793,14 @@ void MainWindow::readSettings()
 
         AddPrinter(printer);
     }
+}
+
+bool MainWindow::isAdminMode()
+{
+    return adminMode;
+}
+
+QString MainWindow::getAdminPasswd()
+{
+
 }
