@@ -28,10 +28,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
-//    qDebug() << __FILE__ << __FUNCTION__ << settings->fileName();
+    qDebug() << __FILE__ << __FUNCTION__ << settings->fileName();
 
     // Start the ui engine
     ui->setupUi(this);
+
+    // Put the build date time and version into the labelVersion
+    ui->labelVersion->setText(QString("SantaShip Ver 2.0 ") + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
     // Setup the right click actions that we will add to the buttons
     actionDeletePictures = new QAction(tr("Delete Selected"),this);
@@ -610,6 +613,13 @@ void MainWindow::on_actionChange_Enable_triggered(bool checked)
         }
     }
     actClicked->setChecked(adminMode);
+
+    // Depending on adminMode enable / disable buttons and menu itesm.
+    ui->actionAdd_Printer->setEnabled(adminMode);
+    ui->actionFull_Screen->setEnabled(adminMode);
+    ui->actionPreview_Window->setEnabled(adminMode);
+    ui->actionSave_Settings->setEnabled(adminMode);
+    ui->pushButtonDir->setEnabled(adminMode);
 }
 
 /*
