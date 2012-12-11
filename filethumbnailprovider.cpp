@@ -21,6 +21,7 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
     qDebug() << __FILE__ << __FUNCTION__ << "icon(const QFileInfo &info)" << info.fileName();
 #if EnableThumbnail
     QMyIcon icon(info.absoluteFilePath());
+    qDebug() << __FILE__ << __FUNCTION__ << "done";
     return icon;
 #else
     return QFileIconProvider::icon(info);

@@ -68,12 +68,15 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setFilter(QDir::Files);
     fileModel->setNameFilterDisables(false);
     fileModel->setIconProvider(fileThumbnail);
-    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
-    fileModel->setRootPath(dirName);
+// Don't setRootPath here that way we don't start processing until the settings are loaded
+//    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
+//    fileModel->setRootPath(dirName);
     fileModel->sort(3);
-    connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
 
-    // Start sending directory updates to the preview window
+    // Start sending directory updates to the various windows
+//    connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
+//    connect(fileModel, SIGNAL(layoutAboutToBeChanged()), this, SLOT(genIconsStart()));
+//    connect(fileModel, SIGNAL(layoutChanged()), this, SLOT(genIconsDone()));
 //    connect(fileModel, SIGNAL(directoryLoaded(QString)), previewWindow, SLOT(OnDirLoaded(QString)));
 
     // Initialize the list view to display the file system model
@@ -81,9 +84,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->listView->setRootIndex(fileModel->index(dirName));
     ui->listView->addAction(actionDeletePictures);
     ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
+#if 0 // Removed as these parameters are set in the ui
     ui->listView->setLayoutMode(QListView::Batched);
     ui->listView->setBatchSize(10);
     ui->listView->setUniformItemSizes(true);
+#endif
 
     // Setup the class to track selections on the list view
     fileSelection = new QItemSelectionModel(fileModel);
@@ -172,7 +177,7 @@ void MainWindow::OnSmaller()
 
     ui->listView->setIconSize(size);
 
-    ui->pushButtonBigger->setEnabled(true);
+    ui->pushButtonBigger->setEnabled(isAdminMode());
     if (size.width() <= 125) {
         ui->pushButtonSmaller->setEnabled(false);
     }
@@ -187,7 +192,7 @@ void MainWindow::OnBigger()
 
     ui->listView->setIconSize(size);
 
-    ui->pushButtonSmaller->setEnabled(true);
+    ui->pushButtonSmaller->setEnabled(isAdminMode());
     if (size.width() >= 500) {
         ui->pushButtonBigger->setEnabled(false);
     }
@@ -614,12 +619,32 @@ void MainWindow::on_actionChange_Enable_triggered(bool checked)
     }
     actClicked->setChecked(adminMode);
 
-    // Depending on adminMode enable / disable buttons and menu itesm.
+    // Depending on adminMode enable / disable buttons and menu items.
     ui->actionAdd_Printer->setEnabled(adminMode);
     ui->actionFull_Screen->setEnabled(adminMode);
     ui->actionPreview_Window->setEnabled(adminMode);
     ui->actionSave_Settings->setEnabled(adminMode);
     ui->pushButtonDir->setEnabled(adminMode);
+
+    // Also enable / disable the size change buttons.
+    QSize size = ui->listView->iconSize();
+    if (size.width() > 125 )
+    {
+        ui->pushButtonSmaller->setEnabled(adminMode);
+    }
+    else
+    {
+        ui->pushButtonSmaller->setEnabled(false);
+    }
+    if (size.width() < 500)
+    {
+        ui->pushButtonBigger->setEnabled(adminMode);
+    }
+    else
+    {
+        ui->pushButtonBigger->setEnabled(false);
+    }
+
 }
 
 /*
@@ -810,7 +835,12 @@ bool MainWindow::isAdminMode()
     return adminMode;
 }
 
-QString MainWindow::getAdminPasswd()
+void MainWindow::genIconsStart()
 {
+    ui->listView->setUpdatesEnabled(false);
+}
 
+void MainWindow::genIconsDone()
+{
+    ui->listView->setUpdatesEnabled(true);
 }

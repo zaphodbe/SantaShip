@@ -54,6 +54,9 @@ public slots:
     void OnDefaults();
     void OnEMail();
 
+    void genIconsStart();
+    void genIconsDone();
+
     void on_actionAdd_Printer_triggered(bool checked);
     void on_actionFull_Screen_triggered(bool checked);
     void on_actionSave_Settings_triggered(bool checked);
@@ -92,7 +95,6 @@ private:
     QImageLayoutButton          *newImageLayout(QString name);
     void                         AddPrinter(QPrinter *printer);
     void                         loadPreviewWindowContents(QString dir);
-    QString                      getAdminPasswd();
 };
 
 #endif // MAINWINDOW_H
