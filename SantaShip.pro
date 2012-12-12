@@ -12,6 +12,7 @@ TARGET = SantaShip
 TEMPLATE = app
 
 unix: CFLAGS += -DDEFAULT_DIR="~/Pictures"
+#CFLAGS += QT_NO_DEBUG_OUTPUT
 
 SOURCES += main.cpp\
         mainwindow.cpp \

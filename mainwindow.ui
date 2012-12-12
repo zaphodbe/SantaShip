@@ -51,6 +51,9 @@
           <property name="uniformItemSizes">
            <bool>true</bool>
           </property>
+          <property name="batchSize">
+           <number>10</number>
+          </property>
          </widget>
         </item>
         <item>
@@ -207,7 +210,7 @@
      <x>0</x>
      <y>0</y>
      <width>825</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSetup">

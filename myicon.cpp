@@ -4,7 +4,7 @@
 #include <QPixmap>
 
 #ifndef USE_SCALED_ICON_WIDTH
-#define USE_SCALED_ICON_WIDTH 500
+#define USE_SCALED_ICON_WIDTH 250
 #endif
 
 QMyIcon::QMyIcon(const QString &fileName)
@@ -18,10 +18,10 @@ QMyIcon::QMyIcon(const QString &fileName)
 #endif // USE_SCALED_ICON_WIDTH
 
     _fileName = fileName;
-    qDebug() << __FILE__ << __FUNCTION__ << _fileName;
+//    qDebug() << __FILE__ << __FUNCTION__ << _fileName;
 }
 
 QMyIcon::~QMyIcon()
 {
-    qDebug() << __FILE__ << __FUNCTION__ << _fileName;
+//    qDebug() << __FILE__ << __FUNCTION__ << _fileName;
 }
