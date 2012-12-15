@@ -90,6 +90,8 @@ private:
     PreviewWindow               *previewWindow;
     bool                         adminMode;
     QString                      adminPassword;
+    QTime                        timer1;
+    QString                      dirName;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(QString name);

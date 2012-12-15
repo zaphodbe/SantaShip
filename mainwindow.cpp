@@ -24,8 +24,12 @@ MainWindow::MainWindow(QWidget *parent) :
     loadImagesDisabled(false),
     previewWindow(new PreviewWindow(this)),
     adminMode(false),
-    adminPassword("")
+    adminPassword(""),
+    dirName("")
 {
+    // Start the timer so we can keep track of execution times.
+    qDebug() << __FILE__ << __FUNCTION__ << "Starting mainwindow timer" << timer1.restart();
+
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
     qDebug() << __FILE__ << __FUNCTION__ << settings->fileName();
@@ -46,9 +50,6 @@ MainWindow::MainWindow(QWidget *parent) :
     signalMapperPrinterSettings = new QSignalMapper(this);
     connect(signalMapperPrinterSettings, SIGNAL(mapped(int)), this, SLOT(OnPrinterSettings(int)));
 
-    // Setup the initial directory
-    QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
-
     // Setup a list of what files we can process
     QStringList filterList;
     filterList << "*.jpg";
@@ -67,32 +68,21 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setNameFilters(filterList);
     fileModel->setFilter(QDir::Files);
     fileModel->setNameFilterDisables(false);
-    fileModel->setIconProvider(fileThumbnail);
-// Don't setRootPath here that way we don't start processing until the settings are loaded
-//    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
-//    fileModel->setRootPath(dirName);
     fileModel->sort(3);
 
     // Start sending directory updates to the various windows
-//    connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
+    connect(fileModel, SIGNAL(directoryLoaded(QString)), this, SLOT(OnDirLoaded(QString)));
 //    connect(fileModel, SIGNAL(layoutAboutToBeChanged()), this, SLOT(genIconsStart()));
 //    connect(fileModel, SIGNAL(layoutChanged()), this, SLOT(genIconsDone()));
 //    connect(fileModel, SIGNAL(directoryLoaded(QString)), previewWindow, SLOT(OnDirLoaded(QString)));
 
     // Initialize the list view to display the file system model
-    ui->listView->setModel(fileModel);
-    ui->listView->setRootIndex(fileModel->index(dirName));
+//    qDebug() << __FILE__ << __FUNCTION__ << "Setup List View:" << timer1.restart();
     ui->listView->addAction(actionDeletePictures);
     ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
-#if 0 // Removed as these parameters are set in the ui
-    ui->listView->setLayoutMode(QListView::Batched);
-    ui->listView->setBatchSize(10);
-    ui->listView->setUniformItemSizes(true);
-#endif
 
     // Setup the class to track selections on the list view
     fileSelection = new QItemSelectionModel(fileModel);
-    ui->listView->setSelectionModel(fileSelection);
 
     connect(fileSelection, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(OnSelectionChanged(QItemSelection,QItemSelection)));
 
@@ -138,6 +128,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(OnResize()));
 
     // Load the settings
+//    qDebug() << __FILE__ << __FUNCTION__ << "readSettings:" << timer1.restart();
     readSettings();
 }
 
@@ -164,8 +155,6 @@ void MainWindow::OnDir()
 
     qDebug() << __FILE__ << __FUNCTION__ << directory;
     fileModel->setRootPath(directory);
-
-    ui->listView->setRootIndex(fileModel->index(directory));
 }
 
 void MainWindow::OnSmaller()
@@ -474,10 +463,19 @@ void MainWindow::paintRequested(QPrinter *printer)
 
 void MainWindow::OnDirLoaded(QString dir)
 {
-    qDebug() << __FILE__ << __FUNCTION__ << dir;
-//    fileModel->sort(3);
-    ui->listView->scrollToBottom();
+    qDebug() << __FILE__ << __FUNCTION__ << dir << dirName << timer1.restart();
+
+    if (dir == dirName)
+    {
+        fileModel->setIconProvider(fileThumbnail);
+        ui->listView->setModel(fileModel);
+        ui->listView->setRootIndex(fileModel->index(dirName));
+        ui->listView->setSelectionModel(fileSelection);
+    }
+
 #if 0
+//    fileModel->sort(3);:"
+    ui->listView->scrollToBottom();
     if (fileSelection->selectedIndexes().length() == 0) {
         // Currently no Items are selected so select the latest
         qDebug() << __FILE__ << __FUNCTION__ << "No files selected so autoselect the last one?";
@@ -779,13 +777,13 @@ void MainWindow::readSettings()
     ui->actionPreview_Window->setChecked(previewWindow->isVisible());
 
     // Setup the current directory
-    QString dirName = QDir::homePath() + "/" + DEFAULT_DIR;
+    dirName = QDir::homePath() + "/" + DEFAULT_DIR;
     dirName = settings->value("CurrentDir", dirName).toString();
     qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
-    ui->listView->setRootIndex(fileModel->index(dirName));
+//    ui->listView->setRootIndex(fileModel->index(dirName));
 
     ui->checkBoxReset->setChecked(settings->value("ResetOnPrint", true).toBool());
     ui->checkBoxPreview->setChecked(settings->value("PrintPreview", false).toBool());

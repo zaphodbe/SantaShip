@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QPixmap>
+#include <QTime>
 
 #ifndef USE_SCALED_ICON_WIDTH
 #define USE_SCALED_ICON_WIDTH 250
@@ -9,6 +10,9 @@
 
 QMyIcon::QMyIcon(const QString &fileName)
 {
+    static QTime timer1;
+    qDebug() << __FILE__ << __FUNCTION__ << fileName << timer1.restart();
+
     // Use a scaled pixmap for the Icon instead of the raw file
     QPixmap pixmap(fileName);
 #if USE_SCALED_ICON_WIDTH
@@ -18,7 +22,7 @@ QMyIcon::QMyIcon(const QString &fileName)
 #endif // USE_SCALED_ICON_WIDTH
 
     _fileName = fileName;
-//    qDebug() << __FILE__ << __FUNCTION__ << _fileName;
+    qDebug() << __FILE__ << __FUNCTION__ << "done" << timer1.restart();
 }
 
 QMyIcon::~QMyIcon()

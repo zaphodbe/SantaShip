@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui thread
+QT       += core gui
 
-CONFIG   += qt thread debug
+CONFIG   += qt debug
 
 TARGET = SantaShip
 TEMPLATE = app
