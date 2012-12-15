@@ -323,7 +323,7 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
 
 void MainWindow::OnResize()
 {
-    qDebug() << __FILE__ << __FUNCTION__;
+//    qDebug() << __FILE__ << __FUNCTION__;
 
     // Make sure the correct portion of the graphicsScene is visible in the graphicsView.
     ui->graphicsView->setScene(graphicsScene);

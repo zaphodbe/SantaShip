@@ -3,11 +3,12 @@
 
 #include <QIcon>
 #include <QString>
+#include <QFileInfo>
 
 class QMyIcon : public QIcon
 {
 public:
-    QMyIcon(const QString &fileName);
+    QMyIcon(const QFileInfo &info);
     ~QMyIcon();
 
 private:
