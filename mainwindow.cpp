@@ -25,7 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     previewWindow(new PreviewWindow(this)),
     adminMode(false),
     adminPassword(""),
-    dirName("")
+    dirName(""),
+    deselectInProcess(false)
 {
     // Start the timer so we can keep track of execution times.
     qDebug() << __FILE__ << __FUNCTION__ << "Starting mainwindow timer" << timer1.restart();
@@ -38,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // Put the build date time and version into the labelVersion
-    ui->labelVersion->setText(QString("SantaShip Ver 2.0 ") + QString(__DATE__) + QString(" ") + QString(__TIME__));
+    ui->labelVersion->setText(QString("SantaShip Ver 2.1 ") + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
     // Setup the right click actions that we will add to the buttons
     actionDeletePictures = new QAction(tr("Delete Selected"),this);
@@ -221,7 +222,7 @@ void MainWindow::OnDeletePictures()
 
 void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr)
 {
-    int imageIndex,layoutIndex;
+    int imageIndex,layoutIndex,firstImageIndex;
     bool imageLandscape,layoutLandscape;
     double imageAspect,layoutAspect;
 
@@ -237,13 +238,17 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
     // Draw a bounding rectangle for the page
     graphicsScene->addRect(imageLayoutCurr->rect,QPen(QColor(0,0,0)));
 
+    // Figure out the first image to use and justify to latest selections
+    firstImageIndex = indexList.count() - imageLayoutCurr->getImageCnt();
+    if (firstImageIndex < 0) firstImageIndex = 0;
+
     // For Each image location in the layout place an image.
     // Repeat the image if there are more locations than selected images.
-    if (indexList.length()) for (imageIndex = 0, layoutIndex = 0; layoutIndex < imageLayoutCurr->getImageCnt(); imageIndex++, layoutIndex++) {
+    if (indexList.length()) for (imageIndex = firstImageIndex, layoutIndex = 0; layoutIndex < imageLayoutCurr->getImageCnt(); imageIndex++, layoutIndex++) {
 
         // Check if we are trying to display more images than selected
         // and loop back to the first image.
-        if (imageIndex >= indexList.length()) imageIndex = 0;
+        if (imageIndex >= indexList.length()) imageIndex = firstImageIndex;
 
         // Load the image into a pixmap
         QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
@@ -335,8 +340,9 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
 {
     Q_UNUSED (selected);
     Q_UNUSED (deselected);
-//    qDebug() << __FILE__ << __FUNCTION__ << "selected" << selected;
-//    qDebug() << __FILE__ << __FUNCTION__ << "deselected" << deselected;
+    //    qDebug() << __FILE__ << __FUNCTION__ << "selected" << selected.indexes();
+    //    qDebug() << __FILE__ << __FUNCTION__ << "deselected" << deselected.indexes();
+
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
     OnResize();
 }
@@ -422,6 +428,20 @@ void MainWindow::OnPrinterSettings(int index)
     // ToDo: Dialog only flashed and doesn't let you change anything
     QPrintDialog printDialog(printerList.at(index), this);
     printDialog.exec();
+}
+
+void MainWindow::OnEMail()
+{
+    if (ui->lineEditEmail->text() != QString("E-Mail Address") &&
+            fileSelection->hasSelection()) {
+        // Only do E-Mail if address entered and pictures are selected
+        qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
+    }
+
+    // If Reset is checked clear the settings
+    if (ui->checkBoxReset->checkState() == Qt::Checked) {
+        OnDefaults();
+    }
 }
 
 void MainWindow::OnPrint(int index)
@@ -526,15 +546,6 @@ void MainWindow::OnDefaults()
     // Update the display
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
     OnResize();
-}
-
-void MainWindow::OnEMail()
-{
-    if (ui->lineEditEmail->text() != QString("E-Mail Address") &&
-            fileSelection->hasSelection()) {
-        // Only do E-Mail if address entered and pictures are selected
-        qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
-    }
 }
 
 /*

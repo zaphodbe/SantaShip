@@ -24,6 +24,7 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
 {
     static QTime timer1;
     QIcon icon;
+    QPixmap pixmap;
 
     // Check for and if necessary create a cache directory
     QString cacheDir = info.absolutePath() + "/.Cache";
@@ -49,7 +50,6 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
     }
     else
     {
-        QPixmap pixmap;
         if (!cacheFileInfo.exists() || info.lastModified() > cacheFileInfo.lastModified())
         {
             // Cache is older or doesn't exist

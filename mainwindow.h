@@ -92,6 +92,7 @@ private:
     QString                      adminPassword;
     QTime                        timer1;
     QString                      dirName;
+    bool                         deselectInProcess;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(QString name);
