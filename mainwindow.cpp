@@ -391,6 +391,9 @@ void MainWindow::AddPrinter(QPrinter *printer)
 
 void MainWindow::OnPrinterRemove(int index)
 {
+    // Only do it if we are in admin mode
+    if (!isAdminMode()) return;
+
     // Set the current button
     QPushButton *button = printButtonList.at(index);
     qDebug() << __FILE__ << __FUNCTION__ << button->text();
@@ -432,10 +435,30 @@ void MainWindow::OnPrinterSettings(int index)
 
 void MainWindow::OnEMail()
 {
+    int imageIndex;
+
+    // Get list of selected files
+    QModelIndexList indexList = fileSelection->selectedIndexes();
+
     if (ui->lineEditEmail->text() != QString("E-Mail Address") &&
             fileSelection->hasSelection()) {
         // Only do E-Mail if address entered and pictures are selected
         qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
+
+        // Add the tags for EMail
+        // ToDo: Have this stage the EMails
+        for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
+            //fileModel->remove(indexList.at(imageIndex));
+            QFile EmailFile("testfile" /*"C:\WIP\EmailList.txt"*/);
+            if (EmailFile.open(QIODevice::Append)) {
+                QTextStream out (&EmailFile);
+                out << QDateTime::currentDateTime().toString() << ": Send \"" << fileModel->fileName(indexList.at(imageIndex)) << "\" to \"" << ui->lineEditEmail->text() << "\"\n";
+                EmailFile.close();
+            } else {
+                qDebug() << __FILE__ << __FUNCTION__ << "Failed to open Email List file";
+            }
+            //qDebug() << __FILE__ << __FUNCTION__ << " " << QDateTime::currentDateTime() << ": Send " << fileModel->fileName(indexList.at(imageIndex)) << " to " << ui->lineEditEmail->text();
+        }
     }
 
     // If Reset is checked clear the settings
@@ -469,10 +492,15 @@ void MainWindow::OnPrint(int index)
         }
     }
 
-    // If Reset is checked clear the settings
-    if (ui->checkBoxReset->checkState() == Qt::Checked) {
-        OnDefaults();
-    }
+    OnEMail();
+
+    // As we called OnEMail we don't need to do this...
+/*
+*    // If Reset is checked clear the settings
+*    if (ui->checkBoxReset->checkState() == Qt::Checked) {
+*        OnDefaults();
+*    }
+*/
 }
 
 void MainWindow::paintRequested(QPrinter *printer)

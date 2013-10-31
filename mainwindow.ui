@@ -130,7 +130,7 @@
         <item>
          <widget class="QLineEdit" name="lineEditEmail">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="text">
            <string>E-Mail Address</string>
@@ -140,7 +140,7 @@
         <item>
          <widget class="QPushButton" name="pushButtonEmail">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="text">
            <string>E-Mail</string>
