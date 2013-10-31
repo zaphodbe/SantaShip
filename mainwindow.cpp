@@ -449,7 +449,8 @@ void MainWindow::OnEMail()
         // ToDo: Have this stage the EMails
         for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
             //fileModel->remove(indexList.at(imageIndex));
-            QFile EmailFile("testfile" /*"C:\WIP\EmailList.txt"*/);
+            QFile EmailFile("EmailList.txt" /*"C:\WIP\EmailList.txt"*/);
+            //qDebug() << __FILE__ << __FUNCTION__ << " " << QDateTime::currentDateTime() << ": Send " << fileModel->fileName(indexList.at(imageIndex)) << " to " << ui->lineEditEmail->text();
             if (EmailFile.open(QIODevice::Append)) {
                 QTextStream out (&EmailFile);
                 out << QDateTime::currentDateTime().toString() << ": Send \"" << fileModel->fileName(indexList.at(imageIndex)) << "\" to \"" << ui->lineEditEmail->text() << "\"\n";
@@ -457,7 +458,6 @@ void MainWindow::OnEMail()
             } else {
                 qDebug() << __FILE__ << __FUNCTION__ << "Failed to open Email List file";
             }
-            //qDebug() << __FILE__ << __FUNCTION__ << " " << QDateTime::currentDateTime() << ": Send " << fileModel->fileName(indexList.at(imageIndex)) << " to " << ui->lineEditEmail->text();
         }
     }
 
