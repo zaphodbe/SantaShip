@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QDirModel>
 #include <QInputDialog>
+#include <QDesktopServices>
+#include <QUrl>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
@@ -450,14 +452,22 @@ void MainWindow::OnEMail()
         for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
             //fileModel->remove(indexList.at(imageIndex));
             QFile EmailFile("EmailList.txt" /*"C:\WIP\EmailList.txt"*/);
-            //qDebug() << __FILE__ << __FUNCTION__ << " " << QDateTime::currentDateTime() << ": Send " << fileModel->fileName(indexList.at(imageIndex)) << " to " << ui->lineEditEmail->text();
+            qDebug() << __FILE__ << __FUNCTION__ << " " << QDateTime::currentDateTime() << ": Send " << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << " to " << ui->lineEditEmail->text();
             if (EmailFile.open(QIODevice::Append)) {
                 QTextStream out (&EmailFile);
-                out << QDateTime::currentDateTime().toString() << ": Send \"" << fileModel->fileName(indexList.at(imageIndex)) << "\" to \"" << ui->lineEditEmail->text() << "\"\n";
+                out << QDateTime::currentDateTime().toString() << ": Send \"" << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << "\" to \"" << ui->lineEditEmail->text() << "\"\n";
                 EmailFile.close();
             } else {
                 qDebug() << __FILE__ << __FUNCTION__ << "Failed to open Email List file";
             }
+
+            QString url("mailto:");
+            url.append(ui->lineEditEmail->text());
+            url.append("?subject=File from Santa.&X-Mailer=SantaShip&body=Test message\n\nFrom Santa");
+            url.append("&attach=\"");
+            url.append(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
+            url.append("\"");
+            QDesktopServices::openUrl(QUrl(url));
         }
     }
 
