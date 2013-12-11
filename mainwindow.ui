@@ -148,6 +148,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="pushButtonArchive">
+          <property name="text">
+           <string>Archive</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="pushButtonDefaults">
           <property name="enabled">
            <bool>true</bool>
@@ -210,7 +217,7 @@
      <x>0</x>
      <y>0</y>
      <width>825</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSetup">
@@ -297,7 +304,7 @@
    <slot>OnDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>117</x>
+     <x>110</x>
      <y>342</y>
     </hint>
     <hint type="destinationlabel">
@@ -313,7 +320,7 @@
    <slot>OnBigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>231</x>
+     <x>216</x>
      <y>342</y>
     </hint>
     <hint type="destinationlabel">
@@ -329,7 +336,7 @@
    <slot>OnSmaller()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>344</x>
+     <x>322</x>
      <y>342</y>
     </hint>
     <hint type="destinationlabel">
@@ -345,8 +352,8 @@
    <slot>OnDefaults()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>794</x>
-     <y>95</y>
+     <x>814</x>
+     <y>169</y>
     </hint>
     <hint type="destinationlabel">
      <x>820</x>
@@ -361,8 +368,8 @@
    <slot>OnEMail()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>781</x>
-     <y>67</y>
+     <x>814</x>
+     <y>111</y>
     </hint>
     <hint type="destinationlabel">
      <x>820</x>

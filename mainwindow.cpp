@@ -435,6 +435,43 @@ void MainWindow::OnPrinterSettings(int index)
     printDialog.exec();
 }
 
+void MainWindow::OnArchive()
+{
+    int imageIndex;
+
+    // Disable LoadImages
+    loadImagesDisabled = TRUE;
+
+    // Get list of selected files
+    QModelIndexList indexList = fileSelection->selectedIndexes();
+
+    // Display warning message box
+    QMessageBox msgBox(QMessageBox::Question,"Archive All/Selected Files", "Are you sure?", QMessageBox::Ok | QMessageBox::Cancel, this);
+    int result = msgBox.exec();
+    if (result == QMessageBox::Ok) {
+        //qDebug() << __FILE__ << __FUNCTION__ << "Archive files";
+
+        // If nothing selected select all
+        if (indexList.length() == 0) {
+//            fileSelection->select()
+        }
+
+        // remove the files
+        for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
+//            fileModel->remove(indexList.at(imageIndex));
+        }
+    }
+    // Clear the current selection
+    fileSelection->clear();
+
+    // Re-enable LoadImages
+    loadImagesDisabled = FALSE;
+
+    // Update the display
+    LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+    OnResize();
+}
+
 void MainWindow::OnEMail()
 {
     int imageIndex;

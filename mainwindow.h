@@ -53,6 +53,7 @@ public slots:
     void OnDirLoaded(QString dir);
     void OnDefaults();
     void OnEMail();
+    void OnArchive();
 
     void genIconsStart();
     void genIconsDone();
