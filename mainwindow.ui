@@ -377,6 +377,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButtonArchive</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnArchive()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>668</x>
+     <y>125</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>880</x>
+     <y>136</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>OnDir()</slot>
@@ -387,5 +403,6 @@
   <slot>OnLayout()</slot>
   <slot>OnDefaults()</slot>
   <slot>OnEMail()</slot>
+  <slot>OnArchive()</slot>
  </slots>
 </ui>
