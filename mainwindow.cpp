@@ -47,6 +47,9 @@ MainWindow::MainWindow(QWidget *parent) :
     actionDeletePictures = new QAction(tr("Delete Selected"),this);
     connect(actionDeletePictures, SIGNAL(triggered()), this, SLOT(OnDeletePictures()));
 
+    actionArchivePictures = new QAction(tr("Archive Selected"),this);
+    connect(actionArchivePictures, SIGNAL(triggered()), this, SLOT(OnArchive()));
+
     signalMapperPrinterRemove = new QSignalMapper(this);
     connect(signalMapperPrinterRemove, SIGNAL(mapped(int)), this, SLOT(OnPrinterRemove(int)));
 
@@ -82,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initialize the list view to display the file system model
 //    qDebug() << __FILE__ << __FUNCTION__ << "Setup List View:" << timer1.restart();
     ui->listView->addAction(actionDeletePictures);
+    ui->listView->addAction(actionArchivePictures);
     ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     // Setup the class to track selections on the list view
@@ -439,6 +443,18 @@ void MainWindow::OnArchive()
 {
     int imageIndex;
 
+    // Check for and if necessary create an archive directory
+    QString archiveDir = fileModel->rootPath() + "/.Archive";
+    QDir dir(archiveDir);
+    if (!dir.exists())
+    {
+        // Archive folder doesn't exist so create it
+        dir.mkpath(archiveDir);
+    }
+
+    // Now point to the current folder
+    dir.setPath(fileModel->rootPath());
+
     // Disable LoadImages
     loadImagesDisabled = TRUE;
 
@@ -451,14 +467,16 @@ void MainWindow::OnArchive()
     if (result == QMessageBox::Ok) {
         //qDebug() << __FILE__ << __FUNCTION__ << "Archive files";
 
-        // If nothing selected select all
+        // If nothing is selected select all
         if (indexList.length() == 0) {
-//            fileSelection->select()
         }
 
-        // remove the files
+        // Move selected files
         for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
-//            fileModel->remove(indexList.at(imageIndex));
+            if (!dir.rename(fileModel->fileName(indexList.at(imageIndex)),
+                       ".Archive/" + fileModel->fileName(indexList.at(imageIndex)))) {
+                qDebug() << "dir.rename failed!";
+            }
         }
     }
     // Clear the current selection

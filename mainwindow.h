@@ -84,6 +84,7 @@ private:
     QImageLayoutButton          *imageLayoutCurr;
     QSettings                   *settings;
     QAction                     *actionDeletePictures;
+    QAction                     *actionArchivePictures;
     QAction                     *actionPrinterSettings;
     QAction                     *actionPrinterRemove;
     bool                         changeEnable;
