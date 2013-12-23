@@ -466,17 +466,27 @@ void MainWindow::OnArchive()
     int result = msgBox.exec();
     if (result == QMessageBox::Ok) {
         //qDebug() << __FILE__ << __FUNCTION__ << "Archive files";
+        QString fileName;
 
-        // If nothing is selected select all
         if (indexList.length() == 0) {
-        }
-
-        // Move selected files
-        for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
-            if (!dir.rename(fileModel->fileName(indexList.at(imageIndex)),
-                       ".Archive/" + fileModel->fileName(indexList.at(imageIndex)))) {
-                qDebug() << "dir.rename failed!";
+            // Nothing is selected move all of them
+            QModelIndex index = fileModel->index(dirName);
+            int numRows = fileModel->rowCount(index);
+            for (int row = 0; row < numRows; row++) {
+                fileName = fileModel->fileName(fileModel->index(row,0,index));
+                if (!dir.rename(fileName, ".Archive/" + fileName)) {
+                    qDebug() << "dir.rename failed!";
+                }
             }
+        } else {
+            // Move selected files
+            for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
+                fileName = fileModel->fileName(indexList.at(imageIndex));
+                if (!dir.rename(fileName, ".Archive/" + fileName)) {
+                    qDebug() << "dir.rename failed!";
+                }
+            }
+
         }
     }
     // Clear the current selection
@@ -596,7 +606,9 @@ void MainWindow::OnDirLoaded(QString dir)
     }
 #endif
 
+    qDebug() << __FILE__ << __FUNCTION__ << "Models Loaded" << timer1.restart();
     loadPreviewWindowContents(dir);
+    qDebug() << __FILE__ << __FUNCTION__ << "Preview Loaded" << timer1.restart();
 }
 
 void MainWindow::loadPreviewWindowContents(QString dir)
