@@ -1,4 +1,4 @@
-#include <QPixmap>
+#include <QImage>
 #include <QDebug>
 
 #include "mythumbnailthread.h"
@@ -14,7 +14,7 @@ MyThumbnailThread::MyThumbnailThread(QObject *parent) :
 
 void MyThumbnailThread::run()
 {
-    QPixmap pixmap;
+    QImage image;
     QString pictureFileName;
     QString cacheFileName;
 
@@ -28,13 +28,13 @@ void MyThumbnailThread::run()
             cacheFileName = m_outputList.first();
 
             qDebug() << __FILE__ << __FUNCTION__ << "Loading" << pictureFileName;
-            if (pixmap.load(pictureFileName))
+            if (image.load(pictureFileName))
             {
                 // Create scaled cache image and save it
-                pixmap = pixmap.scaledToWidth(USE_SCALED_ICON_WIDTH);
+                image = image.scaledToWidth(USE_SCALED_ICON_WIDTH);
 
                 qDebug() << __FILE__ << __FUNCTION__ << "Saving" << cacheFileName;
-                pixmap.save(cacheFileName);
+                image.save(cacheFileName);
             }
             else
             {
