@@ -19,13 +19,13 @@ SOURCES += main.cpp\
     filethumbnailprovider.cpp \
     imagelayout.cpp \
     previewwindow.cpp \
-    mythumbnailthread.cpp
+    thumbnail.cpp
 
 HEADERS  += mainwindow.h \
     filethumbnailprovider.h \
     imagelayout.h \
     previewwindow.h \
-    mythumbnailthread.h
+    thumbnail.h
 
 FORMS    += mainwindow.ui \
     previewwindow.ui

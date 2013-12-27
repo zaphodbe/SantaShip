@@ -4,22 +4,17 @@
 #include <QDir>
 #include <QTime>
 #include <QStringList>
+#include <QtCore>
+
+#include "thumbnail.h"
 
 #ifndef USE_SCALED_ICON_WIDTH
 #define USE_SCALED_ICON_WIDTH 250
 #endif
 
-// Make sure we start off with no thread so it gets created correctly
-MyThumbnailThread *QFileThumbnailProvider::m_thumbnailThread = NULL;
-
 /* This is the re-implementation to handle thumbnails in the icons */
 QFileThumbnailProvider::QFileThumbnailProvider()
 {
-    if (!m_thumbnailThread)
-    {
-        m_thumbnailThread = new MyThumbnailThread();
-        m_thumbnailThread->start();
-    }
 }
 
 QIcon   QFileThumbnailProvider::icon(IconType type) const
@@ -53,6 +48,10 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
 //    qDebug() << __FILE__ << __FUNCTION__ << "Orig file " << info.fileName() << info.exists() << info.lastModified();
 //    qDebug() << __FILE__ << __FUNCTION__ << "Cache file" << cacheFileInfo.fileName() << cacheFileInfo.exists() << cacheFileInfo.lastModified();
 
+    // Cache the filenames
+    QString pictureFileName = info.absoluteFilePath();
+    QString cacheFileName = cacheFileInfo.absoluteFilePath();
+
     qDebug() << __FILE__ << __FUNCTION__ << "Load pixmap" << timer1.restart();
 
     if (!info.isFile())
@@ -64,18 +63,19 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
     {
         if (!cacheFileInfo.exists() || info.lastModified() > cacheFileInfo.lastModified())
         {
+            // Cache is older or doesn't exist
 #if 1
-            // Queue the file to be thumbnailed.
-            m_thumbnailThread->queuePicture(info.absoluteFilePath(), cacheFileInfo.absoluteFilePath());
+            // Use the global thread pool
+            QFuture<bool> result = QtConcurrent::run(createThumbnail, pictureFileName, cacheFileName);
 
             // Load the default thumbnail for now
             pixmap = QFileIconProvider::icon(info).pixmap(QSize(USE_SCALED_ICON_WIDTH,USE_SCALED_ICON_WIDTH * 3 / 5));
 #else
-            // Cache is older or doesn't exist
-            if (pixmap.load(info.absoluteFilePath()))
+            // Just create the thumbnail in line and wait for it
+            if (createThumbnail(pictureFileName, cacheFileName))
             {
-                pixmap = pixmap.scaledToWidth(USE_SCALED_ICON_WIDTH);
-                pixmap.save(cacheFileInfo.absoluteFilePath());
+                // Cache created so load it
+                pixmap.load(cacheFileInfo.absoluteFilePath());
             }
             else
             {

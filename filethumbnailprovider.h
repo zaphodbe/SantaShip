@@ -2,7 +2,6 @@
 #define FILETHUMBNAILPROVIDER_H
 
 #include <QFileIconProvider>
-#include "mythumbnailthread.h"
 
 class QFileThumbnailProvider : public QFileIconProvider
 {
@@ -14,7 +13,6 @@ public:
     QString type(const QFileInfo &info) const;
 
 private:
-    static MyThumbnailThread    *m_thumbnailThread;
 };
 
 #endif // FILETHUMBNAILPROVIDER_H
