@@ -9,92 +9,17 @@
 #define USE_SCALED_ICON_WIDTH 250
 #endif
 
-#include <QThread>
-#include <QMutex>
-
-/* This is a thread class to support picture to thumbnail conversion and is local only */
-/* It is implemented as a singleton to make sure we only get one thread handler */
-class MyThumbnailThread : public QThread
-{
-    Q_OBJECT
-
-public:
-    static MyThumbnailThread    *instance()
-    {
-        static QMutex mutex;
-        if (!m_Instance)
-        {
-            mutex.lock();
-            if (!m_Instance)
-            {
-                m_Instance = new MyThumbnailThread;
-            }
-            mutex.unlock();
-        }
-
-        return m_Instance;
-    }
-
-    static void                 drop()
-    {
-        static QMutex mutex;
-        mutex.lock();
-        delete m_Instance;
-        m_Instance = NULL;
-        mutex.unlock();
-    }
-
-    bool queuePicture(QString fileName);
-    bool isQueued(QString fileName);
-    bool isProcessing(QString fileName);
-
-protected:
-    /* Hide constructors */
-    MyThumbnailThread() : QThread() {}
-    MyThumbnailThread(const MyThumbnailThread &);
-    MyThumbnailThread& operator =(const MyThumbnailThread &);
-
-    void run();
-
-private:
-    static MyThumbnailThread    *m_Instance;
-    QStringList          m_inputList;
-    QStringList          m_processingList;
-};
-
-void MyThumbnailThread::run()
-{
-    qDebug() << __FILE__ << __FUNCTION__ << "Thread created";
-    while (true)
-    {
-
-    }
-}
-
-bool MyThumbnailThread::queuePicture(QString fileName)
-{
-    /* check if the file is in the list already */
-    /* don't insert it twice */
-    if (m_inputList.contains(fileName))
-        return false;
-
-    m_inputList.append(fileName);
-    return true;
-}
-
-bool MyThumbnailThread::isQueued(QString fileName)
-{
-    return (m_inputList.contains(fileName));
-}
-
-bool MyThumbnailThread::isProcessing(QString fileName)
-{
-    return (m_processingList.contains(fileName));
-}
+// Make sure we start off with no thread so it gets created correctly
+MyThumbnailThread *QFileThumbnailProvider::m_thumbnailThread = NULL;
 
 /* This is the re-implementation to handle thumbnails in the icons */
 QFileThumbnailProvider::QFileThumbnailProvider()
 {
+    if (!m_thumbnailThread)
+    {
+        m_thumbnailThread = new MyThumbnailThread();
+        m_thumbnailThread->start();
+    }
 }
 
 QIcon   QFileThumbnailProvider::icon(IconType type) const
@@ -139,6 +64,13 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
     {
         if (!cacheFileInfo.exists() || info.lastModified() > cacheFileInfo.lastModified())
         {
+#if 1
+            // Queue the file to be thumbnailed.
+            m_thumbnailThread->queuePicture(info.absoluteFilePath(), cacheFileInfo.absoluteFilePath());
+
+            // Load the default thumbnail for now
+            pixmap = QFileIconProvider::icon(info).pixmap(QSize(USE_SCALED_ICON_WIDTH,USE_SCALED_ICON_WIDTH * 3 / 5));
+#else
             // Cache is older or doesn't exist
             if (pixmap.load(info.absoluteFilePath()))
             {
@@ -150,6 +82,7 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
                 // loading the pixmap failed so use a standard icon
                 pixmap = QFileIconProvider::icon(info).pixmap(QSize(USE_SCALED_ICON_WIDTH,USE_SCALED_ICON_WIDTH * 3 / 5));
             }
+#endif
         }
         else
         {
