@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "thumbnail.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -31,11 +32,11 @@ MainWindow::MainWindow(QWidget *parent) :
     deselectInProcess(false)
 {
     // Start the timer so we can keep track of execution times.
-    qDebug() << __FILE__ << __FUNCTION__ << "Starting mainwindow timer" << timer1.restart();
+//    qDebug() << __FILE__ << __FUNCTION__ << "Starting mainwindow timer" << timer1.restart();
 
     // Initialize so we can access the settings
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
-    qDebug() << __FILE__ << __FUNCTION__ << settings->fileName();
+//    qDebug() << __FILE__ << __FUNCTION__ << settings->fileName();
 
     // Start the ui engine
     ui->setupUi(this);
@@ -68,6 +69,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Define the thumbnail provider
     fileThumbnail = new QFileThumbnailProvider();
+
+    // Connect the thumbnail timer to force a reload if not events for that amount of time
+    connect(&thumbnailTimer, SIGNAL(timeout()), this, SLOT(OnThumbnailTimeout()));
 
     // Initialize the model of the file system
     fileModel = new QFileSystemModel(this);
@@ -160,7 +164,7 @@ void MainWindow::OnDir()
 {
     QString directory = QFileDialog::getExistingDirectory(this,tr("Open Directory"),fileModel->rootPath());
 
-    qDebug() << __FILE__ << __FUNCTION__ << directory;
+//    qDebug() << __FILE__ << __FUNCTION__ << directory;
     fileModel->setRootPath(directory);
 }
 
@@ -192,6 +196,26 @@ void MainWindow::OnBigger()
     if (size.width() >= 500) {
         ui->pushButtonBigger->setEnabled(false);
     }
+}
+
+void MainWindow::OnThumbnailTimeout()
+{
+    qDebug() << __FILE__ << __FUNCTION__ << "Thumbnails timedout";
+
+    // Check for and if necessary create an archive directory
+    QString touchDir = fileModel->rootPath() + "/.touch";
+    QDir dir(touchDir);
+    if (!dir.exists())
+    {
+        // Touch folder doesn't exist so create it
+        dir.mkpath(touchDir);
+    }
+    else
+    {
+        // Touch folder exist so remove it
+        dir.rmdir(touchDir);
+    }
+
 }
 
 void MainWindow::OnDeletePictures()
@@ -402,7 +426,7 @@ void MainWindow::OnPrinterRemove(int index)
 
     // Set the current button
     QPushButton *button = printButtonList.at(index);
-    qDebug() << __FILE__ << __FUNCTION__ << button->text();
+//    qDebug() << __FILE__ << __FUNCTION__ << button->text();
 
     // Cleanup and remove the button
     ui->verticalLayoutPrintButtons->removeWidget(button);
@@ -431,8 +455,8 @@ void MainWindow::OnPrinterRemove(int index)
 void MainWindow::OnPrinterSettings(int index)
 {
     // Set the current button
-    QPushButton *button = printButtonList.at(index);
-    qDebug() << __FILE__ << __FUNCTION__ << button->text();
+//    QPushButton *button = printButtonList.at(index);
+//    qDebug() << __FILE__ << __FUNCTION__ << button->text();
 
     // ToDo: Dialog only flashed and doesn't let you change anything
     QPrintDialog printDialog(printerList.at(index), this);
@@ -548,7 +572,7 @@ void MainWindow::OnPrint(int index)
     printer->setCopyCount(ui->spinBoxCopies->value());
 
     if (fileSelection->hasSelection()) {
-        qDebug() << __FILE__ << __FUNCTION__ << printer->printerName();
+//        qDebug() << __FILE__ << __FUNCTION__ << printer->printerName();
 
         // Do the printing here
 
@@ -586,7 +610,7 @@ void MainWindow::paintRequested(QPrinter *printer)
 
 void MainWindow::OnDirLoaded(QString dir)
 {
-    qDebug() << __FILE__ << __FUNCTION__ << dir << dirName << timer1.restart();
+//    qDebug() << __FILE__ << __FUNCTION__ << dir << dirName << timer1.restart();
 
     if (dir == dirName)
     {
@@ -601,19 +625,19 @@ void MainWindow::OnDirLoaded(QString dir)
     ui->listView->scrollToBottom();
     if (fileSelection->selectedIndexes().length() == 0) {
         // Currently no Items are selected so select the latest
-        qDebug() << __FILE__ << __FUNCTION__ << "No files selected so autoselect the last one?";
+//        qDebug() << __FILE__ << __FUNCTION__ << "No files selected so autoselect the last one?";
 //        ui->listView->sel
     }
 #endif
 
-    qDebug() << __FILE__ << __FUNCTION__ << "Models Loaded" << timer1.restart();
+//    qDebug() << __FILE__ << __FUNCTION__ << "Models Loaded" << timer1.restart();
     loadPreviewWindowContents(dir);
-    qDebug() << __FILE__ << __FUNCTION__ << "Preview Loaded" << timer1.restart();
+//    qDebug() << __FILE__ << __FUNCTION__ << "Preview Loaded" << timer1.restart();
 }
 
 void MainWindow::loadPreviewWindowContents(QString dir)
 {
-    qDebug() << __FILE__ << __FUNCTION__ << dir;
+//    qDebug() << __FILE__ << __FUNCTION__ << dir;
     if (previewWindow && previewWindow->isVisible()) {
         QModelIndex index = fileModel->index(dir);
         int numRows = fileModel->rowCount(index);
@@ -658,7 +682,7 @@ void MainWindow::OnDefaults()
  */
 void MainWindow::on_actionPreview_Window_triggered(bool checked)
 {
-    qDebug() << __FILE__ << __FUNCTION__;
+//    qDebug() << __FILE__ << __FUNCTION__;
     if (checked) {
         // Show the window
         previewWindow->show();
@@ -671,13 +695,13 @@ void MainWindow::on_actionPreview_Window_triggered(bool checked)
 void MainWindow::on_actionAdd_Printer_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    qDebug() << __FILE__ << __FUNCTION__;
+//    qDebug() << __FILE__ << __FUNCTION__;
     QPrinter *printer = new QPrinter();
 
     QPrintDialog printDialog(printer, this);
 //    qDebug() << __FILE__ << __FUNCTION__ << "First call";
     if (printDialog.exec() == QDialog::Accepted) {
-        qDebug() << __FILE__ << __FUNCTION__ << "adding" << printer->printerName() << printer->resolution();
+//        qDebug() << __FILE__ << __FUNCTION__ << "adding" << printer->printerName() << printer->resolution();
         AddPrinter(printer);
     }
 //    qDebug() << __FILE__ << __FUNCTION__ << "Second call";
@@ -895,7 +919,7 @@ void MainWindow::readSettings()
     // Setup the current directory
     dirName = QDir::homePath() + "/" + DEFAULT_DIR;
     dirName = settings->value("CurrentDir", dirName).toString();
-    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
+//    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());

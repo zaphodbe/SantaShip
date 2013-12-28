@@ -54,6 +54,7 @@ public slots:
     void OnDefaults();
     void OnEMail();
     void OnArchive();
+    void OnThumbnailTimeout();
 
     void genIconsStart();
     void genIconsDone();
