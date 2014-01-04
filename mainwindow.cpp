@@ -202,7 +202,7 @@ void MainWindow::OnThumbnailTimeout()
 {
     qDebug() << __FILE__ << __FUNCTION__ << "Thumbnails timedout";
 
-    // Check for and if necessary create an archive directory
+    // Toggle the existance of a .touch directory to force folder refresh
     QString touchDir = fileModel->rootPath() + "/.touch";
     QDir dir(touchDir);
     if (!dir.exists())

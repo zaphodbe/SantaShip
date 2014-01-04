@@ -25,19 +25,19 @@ bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStrin
 
 //        qDebug() << __FILE__ << __FUNCTION__ << "Saving" << thumbnailFileName;
         image.save(thumbnailFileName);
+
+        // Remove the file from the processList
+        processList->removeOne(pictureFileName);
+
+        // Set to timeout after one second to notify app to reload thus refresh thumbnails
+        thumbnailTimer.setSingleShot(true);
+        thumbnailTimer.start(5000);
     }
     else
     {
         // Picture load failed
         result = false;
     }
-
-    // Remove the file from the processList
-    processList->removeOne(pictureFileName);
-
-    // Set to timeout after one second to notify app to reload thus refresh thumbnails
-    thumbnailTimer.setSingleShot(true);
-    thumbnailTimer.start(5000);
 
 //    qDebug() << __FILE__ << __FUNCTION__ << "Done" << result << thumbnailFileName;
     return result;
