@@ -223,7 +223,7 @@ void MainWindow::OnDeletePictures()
     int imageIndex;
 
     // Disable LoadImages
-    loadImagesDisabled = TRUE;
+    loadImagesDisabled = true;
 
     // Get list of selected files
     QModelIndexList indexList = fileSelection->selectedIndexes();
@@ -243,7 +243,7 @@ void MainWindow::OnDeletePictures()
     fileSelection->clear();
 
     // Re-enable LoadImages
-    loadImagesDisabled = FALSE;
+    loadImagesDisabled = false;
 
     // Update the display
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
@@ -480,7 +480,7 @@ void MainWindow::OnArchive()
     dir.setPath(fileModel->rootPath());
 
     // Disable LoadImages
-    loadImagesDisabled = TRUE;
+    loadImagesDisabled = true;
 
     // Get list of selected files
     QModelIndexList indexList = fileSelection->selectedIndexes();
@@ -517,7 +517,7 @@ void MainWindow::OnArchive()
     fileSelection->clear();
 
     // Re-enable LoadImages
-    loadImagesDisabled = FALSE;
+    loadImagesDisabled = false;
 
     // Update the display
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
@@ -902,7 +902,7 @@ void MainWindow::readSettings()
     }
 
     // Load PreviewWindow settings
-    previewWindow->setVisible(settings->value("PreviewWindow/enabled", FALSE).toBool());
+    previewWindow->setVisible(settings->value("PreviewWindow/enabled", false).toBool());
     if (previewWindow->isVisible()) {
         previewWindow->resize(settings->value("PreviewWindow/size", QSize(720,480)).toSize());
         previewWindow->move(settings->value("PreviewWindow/pos", QPoint(300,300)).toPoint());

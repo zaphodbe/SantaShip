@@ -5,6 +5,7 @@
 #include <QTime>
 #include <QStringList>
 #include <QtCore>
+#include <QtConcurrent/QtConcurrent>
 
 #include "thumbnail.h"
 

@@ -4,12 +4,14 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui widgets printsupport
 
 CONFIG   += qt debug
 
 TARGET = SantaShip
 TEMPLATE = app
+
+QMAKE_MAC_SDK = macosx10.10
 
 unix: CFLAGS += -DDEFAULT_DIR="~/Pictures"
 #CFLAGS += QT_NO_DEBUG_OUTPUT
