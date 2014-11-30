@@ -7,6 +7,6 @@
 
 bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList);
 
-extern QTimer thumbnailTimer;
+extern QTimer *thumbnailTimer;
 
 #endif // THUMBNAIL_H

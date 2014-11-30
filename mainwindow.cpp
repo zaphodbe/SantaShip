@@ -71,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileThumbnail = new QFileThumbnailProvider();
 
     // Connect the thumbnail timer to force a reload if not events for that amount of time
-    connect(&thumbnailTimer, SIGNAL(timeout()), this, SLOT(OnThumbnailTimeout()));
+    connect(thumbnailTimer, SIGNAL(timeout()), this, SLOT(OnThumbnailTimeout()));
 
     // Initialize the model of the file system
     fileModel = new QFileSystemModel(this);

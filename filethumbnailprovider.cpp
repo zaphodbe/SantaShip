@@ -70,6 +70,8 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
             // Check if we are already processing a thumbnail for this one.
             if (!processingThumbnails.contains(pictureFileName))
             {
+//                qDebug() << __FILE__ << __FUNCTION__ << "Scheduling " << pictureFileName;
+
                 // Add it to the list of processing so we don't double dip
                 processingThumbnails.append(pictureFileName);
 #if 1

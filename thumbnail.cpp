@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QImage>
+#include <QThread>
 #include <QStringList>
 
 #include "thumbnail.h"
@@ -10,16 +11,18 @@
 #endif
 
 // Setup a global thumbnailTimer
-QTimer thumbnailTimer;
+QTimer *thumbnailTimer = new QTimer();
 
 bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList)
 {
     QImage image;
 
     bool result = true;
-//    qDebug() << __FILE__ << __FUNCTION__ << "Loading" << pictureFileName;
+    QThread::sleep(1);
+    qDebug() << __FILE__ << __FUNCTION__ << "Loading" << pictureFileName;
     if (image.load(pictureFileName))
     {
+        qDebug() << __FILE__ << __FUNCTION__ << "Scaling" << pictureFileName;
         // Create scaled cache image and save it
         image = image.scaledToWidth(USE_SCALED_ICON_WIDTH);
 
@@ -29,12 +32,13 @@ bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStrin
         // Remove the file from the processList
         processList->removeOne(pictureFileName);
 
-        // Set to timeout after one second to notify app to reload thus refresh thumbnails
-        thumbnailTimer.setSingleShot(true);
-        thumbnailTimer.start(5000);
+        // Set timeout to notify app to reload thus refresh thumbnails
+        thumbnailTimer->setSingleShot(true);
+        thumbnailTimer->start(5000);
     }
     else
     {
+        qDebug() << __FILE__ << __FUNCTION__ << "Failed to load" << pictureFileName;
         // Picture load failed
         result = false;
     }
