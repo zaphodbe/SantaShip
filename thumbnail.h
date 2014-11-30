@@ -5,8 +5,6 @@
 #include <QStringList>
 #include <QTimer>
 
-bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList);
-
-extern QTimer *thumbnailTimer;
+bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList, QTimer *timer);
 
 #endif // THUMBNAIL_H

@@ -6,6 +6,8 @@
 #include <QStringList>
 #include <QtCore>
 #include <QtConcurrent/QtConcurrent>
+#include <QPainter>
+#include <QStaticText>
 
 #include "thumbnail.h"
 
@@ -13,11 +15,18 @@
 #define USE_SCALED_ICON_WIDTH 250
 #endif
 
-QStringList processingThumbnails;
+#ifndef USE_SCALED_ICON_HEIGHT
+#define USE_SCALED_ICON_HEIGHT 150
+#endif
+
+QStringList      processingThumbnails;
 
 /* This is the re-implementation to handle thumbnails in the icons */
 QFileThumbnailProvider::QFileThumbnailProvider()
 {
+    // Create the temporary pixmap at runtime so it is the correct size
+    pixmapTemp = new QPixmap( USE_SCALED_ICON_WIDTH, USE_SCALED_ICON_HEIGHT);
+    pixmapTemp->load(":/Images/Loading.JPG");
 }
 
 QIcon   QFileThumbnailProvider::icon(IconType type) const
@@ -57,6 +66,7 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
 
 //    qDebug() << __FILE__ << __FUNCTION__ << "Load pixmap" << timer1.restart();
 
+#ifdef CHECK_ISFILE
     if (!info.isFile())
     {
         // This is not a file so just use the default icon
@@ -64,6 +74,7 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
     }
     else
     {
+#endif // CHECK_ISFILE
         if (!cacheFileInfo.exists() || info.lastModified() > cacheFileInfo.lastModified())
         {
             // Cache is older or doesn't exist
@@ -76,13 +87,16 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
                 processingThumbnails.append(pictureFileName);
 #if 1
                 // Use the global thread pool
-                QFuture<bool> result = QtConcurrent::run(createThumbnail, pictureFileName, cacheFileName, &processingThumbnails);
+                QFuture<bool> result = QtConcurrent::run(createThumbnail, pictureFileName, cacheFileName, &processingThumbnails, timer);
 
                 // Load the default thumbnail for now
-                pixmap = QFileIconProvider::icon(info).pixmap(QSize(USE_SCALED_ICON_WIDTH,USE_SCALED_ICON_WIDTH * 3 / 5));
+                // pixmap = QFileIconProvider::icon(info).pixmap(QSize(USE_SCALED_ICON_WIDTH,USE_SCALED_ICON_WIDTH * 3 / 5));
+
+                // Add the pixmap to the icon
+                icon.addPixmap(*pixmapTemp);
 #else
                 // Just create the thumbnail in line and wait for it
-                if (createThumbnail(pictureFileName, cacheFileName, &processingThumbnails))
+                if (createThumbnail(pictureFileName, cacheFileName, &processingThumbnails, timer))
                 {
                     // Cache created so load it
                     pixmap.load(cacheFileInfo.absoluteFilePath());
@@ -92,6 +106,9 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
                     // loading the pixmap failed so use a standard icon
                     pixmap = QFileIconProvider::icon(info).pixmap(QSize(USE_SCALED_ICON_WIDTH,USE_SCALED_ICON_WIDTH * 3 / 5));
                 }
+
+                // Add the pixmap to the icon
+                icon.addPixmap(pixmap);
 #endif
             }
         }
@@ -99,11 +116,13 @@ QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
         {
             // Cache exists and is valid so just load it
             pixmap.load(cacheFileInfo.absoluteFilePath());
-        }
 
-        // Add the pixmap to the icon
-        icon.addPixmap(pixmap);
+            // Add the pixmap to the icon
+            icon.addPixmap(pixmap);
+        }
+#ifdef CHECK_ISFILE
     }
+#endif // CHECK_ISFILE
 
 //    qDebug() << __FILE__ << __FUNCTION__ << "Done" << timer1.restart();
     return icon;
@@ -115,4 +134,9 @@ QString QFileThumbnailProvider::type(const QFileInfo &info) const
     QString str = QFileIconProvider::type(info);
 //    qDebug() << __FILE__ << __FUNCTION__ << "done";
     return str;
+}
+
+void QFileThumbnailProvider::setTimer(QTimer *timer)
+{
+    this->timer = timer;
 }

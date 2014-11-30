@@ -68,7 +68,9 @@ MainWindow::MainWindow(QWidget *parent) :
     filterList << "*.tiff";
 
     // Define the thumbnail provider
+    thumbnailTimer = new QTimer();
     fileThumbnail = new QFileThumbnailProvider();
+    fileThumbnail->setTimer(thumbnailTimer);
 
     // Connect the thumbnail timer to force a reload if not events for that amount of time
     connect(thumbnailTimer, SIGNAL(timeout()), this, SLOT(OnThumbnailTimeout()));

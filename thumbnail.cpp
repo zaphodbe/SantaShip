@@ -10,10 +10,7 @@
 #define USE_SCALED_ICON_WIDTH 250
 #endif
 
-// Setup a global thumbnailTimer
-QTimer *thumbnailTimer = new QTimer();
-
-bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList)
+bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList, QTimer *timer)
 {
     QImage image;
 
@@ -33,8 +30,8 @@ bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStrin
         processList->removeOne(pictureFileName);
 
         // Set timeout to notify app to reload thus refresh thumbnails
-        thumbnailTimer->setSingleShot(true);
-        thumbnailTimer->start(5000);
+        timer->setSingleShot(true);
+        timer->start(5000);
     }
     else
     {

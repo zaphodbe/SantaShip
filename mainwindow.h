@@ -96,6 +96,7 @@ private:
     QTime                        timer1;
     QString                      dirName;
     bool                         deselectInProcess;
+    QTimer                      *thumbnailTimer;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(QString name);

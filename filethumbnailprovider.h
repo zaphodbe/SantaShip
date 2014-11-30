@@ -12,7 +12,11 @@ public:
     QIcon   icon(const QFileInfo &info) const;
     QString type(const QFileInfo &info) const;
 
+    void setTimer(QTimer *timer);
+
 private:
+    QTimer          *timer;
+    QPixmap         *pixmapTemp;
 };
 
 #endif // FILETHUMBNAILPROVIDER_H
