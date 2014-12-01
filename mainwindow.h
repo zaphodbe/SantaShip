@@ -28,11 +28,23 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-public:
+private:
     explicit MainWindow(QWidget *parent = 0);
+
+public:
     ~MainWindow();
 
     bool                         isAdminMode();
+
+    static MainWindow           *getInstance()
+    {
+        static MainWindow       *instance;
+        if (!instance)
+        {
+            instance = new MainWindow();
+        }
+        return instance;
+    }
 
 protected:
     void resizeEvent(QResizeEvent *event);
@@ -68,6 +80,7 @@ public slots:
     void paintRequested(QPrinter* printer);
     void writeSettings();
     void readSettings();
+    void restartThumbnailTimer();
 
 private:
     Ui::MainWindow              *ui;

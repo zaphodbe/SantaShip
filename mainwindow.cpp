@@ -70,7 +70,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // Define the thumbnail provider
     thumbnailTimer = new QTimer();
     fileThumbnail = new QFileThumbnailProvider();
-    fileThumbnail->setTimer(thumbnailTimer);
 
     // Connect the thumbnail timer to force a reload if not events for that amount of time
     connect(thumbnailTimer, SIGNAL(timeout()), this, SLOT(OnThumbnailTimeout()));
@@ -93,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->listView->addAction(actionDeletePictures);
     ui->listView->addAction(actionArchivePictures);
     ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    ui->listView->setIconSize(QSize(250,150));
 
     // Setup the class to track selections on the list view
     fileSelection = new QItemSelectionModel(fileModel);
@@ -155,6 +155,7 @@ MainWindow::~MainWindow()
     delete fileModel;
     delete fileThumbnail;
     delete ui;
+    delete thumbnailTimer;
     delete settings;
 }
 
@@ -202,7 +203,7 @@ void MainWindow::OnBigger()
 
 void MainWindow::OnThumbnailTimeout()
 {
-    qDebug() << __FILE__ << __FUNCTION__ << "Thumbnails timedout";
+//    qDebug() << __FILE__ << __FUNCTION__ << "Thumbnails timedout";
 
     // Toggle the existance of a .touch directory to force folder refresh
     QString touchDir = fileModel->rootPath() + "/.touch";
@@ -218,6 +219,13 @@ void MainWindow::OnThumbnailTimeout()
         dir.rmdir(touchDir);
     }
 
+}
+
+void MainWindow::restartThumbnailTimer()
+{
+    // Set timeout to notify app to reload thus refresh thumbnails
+    thumbnailTimer->setSingleShot(true);
+    thumbnailTimer->start(5000);
 }
 
 void MainWindow::OnDeletePictures()

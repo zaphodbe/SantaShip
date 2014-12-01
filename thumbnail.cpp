@@ -4,13 +4,14 @@
 #include <QThread>
 #include <QStringList>
 
+#include "mainwindow.h"
 #include "thumbnail.h"
 
 #ifndef USE_SCALED_ICON_WIDTH
 #define USE_SCALED_ICON_WIDTH 250
 #endif
 
-bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList, QTimer *timer)
+bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList)
 {
     QImage image;
 
@@ -29,9 +30,14 @@ bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStrin
         // Remove the file from the processList
         processList->removeOne(pictureFileName);
 
+#if 0
         // Set timeout to notify app to reload thus refresh thumbnails
         timer->setSingleShot(true);
         timer->start(5000);
+#else
+        QMainWindow *myWindow = MainWindow::getInstance();
+        QMetaObject::invokeMethod( myWindow, "restartThumbnailTimer", Qt::QueuedConnection );
+#endif
     }
     else
     {
