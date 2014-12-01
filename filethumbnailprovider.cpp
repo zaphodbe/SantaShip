@@ -32,9 +32,15 @@ QFileThumbnailProvider::QFileThumbnailProvider()
 QIcon   QFileThumbnailProvider::icon(IconType type) const
 {
 //    qDebug() << __FILE__ << __FUNCTION__ << "icon(IconType type)" << type;
-    QIcon icon = QFileIconProvider::icon(type);
-//    qDebug() << __FILE__ << __FUNCTION__ << "done";
-    return icon;
+    if (type == QFileIconProvider::File)
+    {
+        QIcon icon;
+        // Add the pixmap to the icon
+        icon.addPixmap(*pixmapTemp);
+        return icon;
+    }
+
+    return QFileIconProvider::icon(type);
 }
 
 QIcon   QFileThumbnailProvider::icon(const QFileInfo &info) const
