@@ -11,26 +11,35 @@ CONFIG   += qt debug
 TARGET = SantaShip
 TEMPLATE = app
 
-QMAKE_MAC_SDK = macosx10.10
+#QMAKE_MAC_SDK = macosx10.10
 
 unix: CFLAGS += -DDEFAULT_DIR="~/Pictures"
 #CFLAGS += QT_NO_DEBUG_OUTPUT
+
+include(qts3/qts3.pri)
+include(SmtpClient-for-Qt/SMTPEmail.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp \
     filethumbnailprovider.cpp \
     imagelayout.cpp \
     previewwindow.cpp \
-    thumbnail.cpp
+    thumbnail.cpp \
+    cloudsync.cpp \
+    dialogcloudsetup.cpp
 
 HEADERS  += mainwindow.h \
     filethumbnailprovider.h \
     imagelayout.h \
     previewwindow.h \
-    thumbnail.h
+    thumbnail.h \
+    cloudsync.h \
+    dialogcloudsetup.h
 
 FORMS    += mainwindow.ui \
-    previewwindow.ui
+    previewwindow.ui \
+    mainwindow-alt.ui \
+    dialogcloudsetup.ui
 
 RESOURCES += \
     resources.qrc

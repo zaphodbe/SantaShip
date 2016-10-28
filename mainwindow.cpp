@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "thumbnail.h"
+#include "dialogcloudsetup.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -11,11 +12,18 @@
 #include <QInputDialog>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QtConcurrent/QtConcurrent>
+
+#include <qts3.h>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
     #define DEFAULT_DIR "Pictures"
 #endif
+
+// Credentials for S3 access
+QByteArray awsKeyId = "AKIAIN572KU2X65CCJRA";
+QByteArray awsSecretKey = "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";
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -89,6 +97,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Initialize the list view to display the file system model
 //    qDebug() << __FILE__ << __FUNCTION__ << "Setup List View:" << timer1.restart();
+    ui->listView->setAcceptDrops(false);
+    ui->listView->setDragEnabled(false);
+    ui->listView->setDragDropMode(QAbstractItemView::NoDragDrop);
     ui->listView->addAction(actionDeletePictures);
     ui->listView->addAction(actionArchivePictures);
     ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -114,23 +125,43 @@ MainWindow::MainWindow(QWidget *parent) :
     // ToDo load these from discription files
     QImageLayoutButton *layoutButton;
 
-    layoutButton = newImageLayout(QString("1 Up"));
+    layoutButton = newImageLayout(QString("1 Up L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(0,0,11000,8500));
+
+    layoutButton = newImageLayout(QString("2 Up L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(0,0,5500,8500));
+    layoutButton->addImage(QRectF(5500,0,5500,8500));
+
+    layoutButton = newImageLayout(QString("4 Up L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(0,0,5500,4250));
+    layoutButton->addImage(QRectF(0,4250,5500,4250));
+    layoutButton->addImage(QRectF(5500,0,5500,4250));
+    layoutButton->addImage(QRectF(5500,4250,5500,4250));
+
+    layoutButton = newImageLayout(QString("One 8x10 L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(500,250,10000,8000));
+
+    layoutButton = newImageLayout(QString("1 Up P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,11000));
 
-    layoutButton = newImageLayout(QString("2 Up"));
+    layoutButton = newImageLayout(QString("2 Up P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,5500));
     layoutButton->addImage(QRectF(0,5500,8500,5500));
 
-    layoutButton = newImageLayout(QString("4 Up"));
+    layoutButton = newImageLayout(QString("4 Up P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,4250,5500));
     layoutButton->addImage(QRectF(4250,0,4250,5500));
     layoutButton->addImage(QRectF(0,5500,4250,5500));
     layoutButton->addImage(QRectF(4250,5500,4250,5500));
 
-    layoutButton = newImageLayout(QString("One 8x10"));
+    layoutButton = newImageLayout(QString("One 8x10 P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(250,500,8000,10000));
 
@@ -143,6 +174,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // Load the settings
 //    qDebug() << __FILE__ << __FUNCTION__ << "readSettings:" << timer1.restart();
     readSettings();
+
+    // Start the thread to sync with the cloud
+    cloudSyncThread.start();
+
 }
 
 MainWindow::~MainWindow()
@@ -541,7 +576,47 @@ void MainWindow::OnEMail()
     // Get list of selected files
     QModelIndexList indexList = fileSelection->selectedIndexes();
 
+#if 1
     if (ui->lineEditEmail->text() != QString("E-Mail Address") &&
+            fileSelection->hasSelection()) {
+        // Only do E-Mail/Web if address entered and pictures are selected
+        qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
+
+        QString emailID = QUuid::createUuid().toString().mid(1);
+        emailID.chop(1);
+        QFile emailFile(cloudSyncThread.emailDirName + "/" + emailID + ".eml");
+        emailFile.open(QIODevice::Append);
+        QTextStream emailStream (&emailFile);
+
+        emailStream << "To: " << ui->lineEditEmail->text() << "\n";
+        emailStream << "From: Santa Claus <Santa@MagicShipOfChristmas.org>\n";
+        emailStream << "Subject: Pictures with Santa on the Magic Ship\n";
+        emailStream << "\n";
+        emailStream << "These are your pictures with Santa on the Magic Ship of Christmas\n\n";
+
+        qDebug() << "emailID" << emailID;
+
+        // Add the tags for EMail
+        // ToDo: Have this stage the EMails
+        for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
+            QString srcFileName = fileModel->fileName(indexList.at(imageIndex));
+            QFileInfo srcFileInfo(srcFileName);
+            QString destFileName = QUuid::createUuid().toString().mid(1);
+            destFileName.chop(1);
+            destFileName.append(".");
+            destFileName.append(srcFileInfo.suffix());
+
+            qDebug() << "Copy file" << srcFileName << "to" << destFileName;
+
+            QFile::copy(fileModel->rootPath() + "/" + srcFileName, cloudSyncThread.filesDirName + "/" + destFileName);
+            emailStream << "https://s3-us-west-1.amazonaws.com/magicshipphotos/" + destFileName << "\n";
+        }
+
+        emailStream << "\nThank you\nSanta Claus\nTroop / Crew 799\nMorgan Hill\n";
+        emailFile.close();
+    }
+#else
+    if (ui->lineEditEmail->text().size() &&
             fileSelection->hasSelection()) {
         // Only do E-Mail if address entered and pictures are selected
         qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
@@ -569,6 +644,7 @@ void MainWindow::OnEMail()
             QDesktopServices::openUrl(QUrl(url));
         }
     }
+#endif
 
     // If Reset is checked clear the settings
     if (ui->checkBoxReset->checkState() == Qt::Checked) {
@@ -671,7 +747,7 @@ void MainWindow::loadPreviewWindowContents(QString dir)
 void MainWindow::OnDefaults()
 {
     // Set the E-Mail back
-    ui->lineEditEmail->setText(QString("E-Mail Address"));
+    ui->lineEditEmail->clear();
 
     // Set the copies count back to 1
     ui->spinBoxCopies->setValue(1);
@@ -773,6 +849,7 @@ void MainWindow::on_actionChange_Enable_triggered(bool checked)
     ui->actionPreview_Window->setEnabled(adminMode);
     ui->actionSave_Settings->setEnabled(adminMode);
     ui->pushButtonDir->setEnabled(adminMode);
+    ui->actionCloud_Access->setEnabled(adminMode);
 
     // Also enable / disable the size change buttons.
     QSize size = ui->listView->iconSize();
@@ -793,6 +870,44 @@ void MainWindow::on_actionChange_Enable_triggered(bool checked)
         ui->pushButtonBigger->setEnabled(false);
     }
 
+}
+
+void MainWindow::on_actionCloud_Access_triggered(bool checked)
+{
+#if 1
+    Q_UNUSED (checked);
+    DialogCloudSetup cloudSetup;
+    cloudSetup.setS3Access(cloudSyncThread.S3Access);
+    cloudSetup.setS3Secret(cloudSyncThread.S3Secret);
+    cloudSetup.setS3Bucket(cloudSyncThread.S3Bucket);
+    cloudSetup.setEMailName(cloudSyncThread.emailSenderName);
+    cloudSetup.setEMailUser(cloudSyncThread.emailSender);
+    cloudSetup.setEMailPassword(cloudSyncThread.emailPassword);
+    cloudSetup.setEMailServer(cloudSyncThread.emailServer);
+    cloudSetup.setEMailPort(cloudSyncThread.emailPort);
+
+    int result = cloudSetup.exec();
+
+    if (result == QDialog::Accepted) {
+        cloudSyncThread.S3Access = cloudSetup.getS3Access();
+        cloudSyncThread.S3Secret = cloudSetup.getS3Secret();
+        cloudSyncThread.S3Bucket = cloudSetup.getS3Bucket();
+        cloudSyncThread.emailSenderName = cloudSetup.getEMailName();
+        cloudSyncThread.emailSender = cloudSetup.getEMailUser();
+        cloudSyncThread.emailPassword = cloudSetup.getEMailPassword();
+        cloudSyncThread.emailServer = cloudSetup.getEMailServer();
+        cloudSyncThread.emailPort = cloudSetup.getEMailPort();
+    }
+#else
+    Q_UNUSED (checked);
+    bool    ok = false;
+    QString S3Access = QInputDialog::getText(this, QString("Please enter S3 Access ID"), QString("Access ID"), QLineEdit::Normal, cloudSyncThread.S3Access, &ok);
+    if (ok)
+    {
+        // User hit ok
+        cloudSyncThread.S3Access = S3Access;
+    }
+#endif
 }
 
 /*
@@ -845,6 +960,16 @@ void MainWindow::writeSettings()
     settings->setValue("PreviewWindow/maximize", previewWindow->isMaximized());
     settings->setValue("PreviewWindow/size", previewWindow->size());
     settings->setValue("PreviewWindow/pos", previewWindow->pos());
+
+    settings->setValue("S3Access", cloudSyncThread.S3Access);
+    settings->setValue("S3Secret", cloudSyncThread.S3Secret);
+    settings->setValue("S3Bucket", cloudSyncThread.S3Bucket);
+
+    settings->setValue("EMailSender", cloudSyncThread.emailSender);
+    settings->setValue("EMailSenderName", cloudSyncThread.emailSenderName);
+    settings->setValue("EMailPassword", cloudSyncThread.emailPassword);
+    settings->setValue("EMailServer", cloudSyncThread.emailServer);
+    settings->setValue("EMailPort", cloudSyncThread.emailPort);
 
     numItems = ui->splitter->sizes().length();
     for (i = 0; i < numItems; i++) {
@@ -931,6 +1056,8 @@ void MainWindow::readSettings()
     dirName = settings->value("CurrentDir", dirName).toString();
 //    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
+    cloudSyncThread.filesDirName = dirName + "/.AWS";
+    cloudSyncThread.emailDirName = dirName + "/.EMail";
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
 //    ui->listView->setRootIndex(fileModel->index(dirName));
@@ -938,6 +1065,16 @@ void MainWindow::readSettings()
     ui->checkBoxReset->setChecked(settings->value("ResetOnPrint", true).toBool());
     ui->checkBoxPreview->setChecked(settings->value("PrintPreview", false).toBool());
 //    ui->splitter->setSizes(settings->value("Splits").);
+
+    cloudSyncThread.S3Access = settings->value("S3Access").toString();
+    cloudSyncThread.S3Secret = settings->value("S3Secret").toString();
+    cloudSyncThread.S3Bucket = settings->value("S3Bucket").toString();
+
+    cloudSyncThread.emailSender = settings->value("EMailSender").toString();
+    cloudSyncThread.emailSenderName = settings->value("EMailSenderName").toString();
+    cloudSyncThread.emailPassword = settings->value("EMailPassword").toString();
+    cloudSyncThread.emailServer = settings->value("EMailServer").toString();
+    cloudSyncThread.emailPort = settings->value("EMailPort").toInt();
 
     numItems = settings->value("NumSplits", 3).toInt();
     QList<int> sizeList;

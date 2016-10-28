@@ -1,0 +1,6 @@
+[submodule "qts3"]
+	path = qts3
+	url = https://github.com/msorvig/qts3.git
+[submodule "SmtpClient-for-Qt"]
+	path = SmtpClient-for-Qt
+	url = https://github.com/bluetiger9/SmtpClient-for-Qt.git

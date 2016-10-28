@@ -19,6 +19,7 @@
 #include "filethumbnailprovider.h"
 #include "imagelayout.h"
 #include "previewwindow.h"
+#include "cloudsync.h"
 
 namespace Ui {
     class MainWindow;
@@ -76,6 +77,7 @@ public slots:
     void on_actionSave_Settings_triggered(bool checked);
     void on_actionPreview_Window_triggered(bool checked);
     void on_actionChange_Enable_triggered(bool checked);
+    void on_actionCloud_Access_triggered(bool checked);
 
     void paintRequested(QPrinter* printer);
     void writeSettings();
@@ -110,6 +112,7 @@ private:
     QString                      dirName;
     bool                         deselectInProcess;
     QTimer                      *thumbnailTimer;
+    cloudsync                    cloudSyncThread;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(QString name);

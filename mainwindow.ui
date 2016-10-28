@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>825</width>
-    <height>354</height>
+    <height>376</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -104,10 +104,6 @@
           </property>
          </layout>
         </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <layout class="QVBoxLayout" name="verticalLayoutPrintButtons">
         <item>
          <widget class="QLabel" name="labelVersion">
           <property name="sizePolicy">
@@ -120,7 +116,7 @@
            <string>SantaShip Photo Vers xx</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           <set>Qt::AlignCenter</set>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -128,82 +124,99 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEditEmail">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>E-Mail Address</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButtonEmail">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>E-Mail</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButtonArchive">
-          <property name="text">
-           <string>Archive</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButtonDefaults">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>Clear Selection(s)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBoxPreview">
-          <property name="text">
-           <string>Preview</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBoxReset">
-          <property name="text">
-           <string>Reset on Print</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <layout class="QHBoxLayout" name="horizontalLayout_Email">
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLineEdit" name="lineEditEmail">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
-             <string>Copies</string>
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>E-Mail Address</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBoxCopies">
-            <property name="minimum">
-             <number>1</number>
+           <widget class="QPushButton" name="pushButtonEmail">
+            <property name="enabled">
+             <bool>true</bool>
             </property>
-            <property name="maximum">
-             <number>10</number>
-            </property>
-            <property name="value">
-             <number>1</number>
+            <property name="text">
+             <string>E-Mail / Web</string>
             </property>
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="pushButtonArchive">
+            <property name="text">
+             <string>Archive</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonDefaults">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Clear Selection(s)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxPreview">
+            <property name="text">
+             <string>Preview</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxReset">
+            <property name="text">
+             <string>Reset on Print</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="copiesLayout">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Copies</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinBoxCopies">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>10</number>
+              </property>
+              <property name="value">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="verticalLayoutPrintButtons"/>
         </item>
        </layout>
       </widget>
@@ -217,7 +230,7 @@
      <x>0</x>
      <y>0</y>
      <width>825</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSetup">
@@ -229,6 +242,7 @@
     <addaction name="actionSave_Settings"/>
     <addaction name="actionAdd_Printer"/>
     <addaction name="actionPreview_Window"/>
+    <addaction name="actionCloud_Access"/>
    </widget>
    <addaction name="menuSetup"/>
   </widget>
@@ -291,6 +305,17 @@
    </property>
    <property name="shortcut">
     <string>Meta+E</string>
+   </property>
+  </action>
+  <action name="actionCloud_Access">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Cloud Access</string>
+   </property>
+   <property name="shortcut">
+    <string>Meta+I</string>
    </property>
   </action>
  </widget>
