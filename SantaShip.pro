@@ -38,7 +38,6 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui \
     previewwindow.ui \
-    mainwindow-alt.ui \
     dialogcloudsetup.ui
 
 RESOURCES += \
