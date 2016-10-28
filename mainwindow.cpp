@@ -297,9 +297,9 @@ void MainWindow::OnDeletePictures()
 
 void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr)
 {
-    int imageIndex,layoutIndex,firstImageIndex;
-    bool imageLandscape,layoutLandscape;
-    double imageAspect,layoutAspect;
+    int     imageIndex,layoutIndex,firstImageIndex,imageFlags;
+    bool    imageLandscape,layoutLandscape;
+    double  imageAspect,layoutAspect;
 
 //    qDebug() << __FILE__ << __FUNCTION__ << this->imageLayoutCurr->text();
 
@@ -325,28 +325,10 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
         // and loop back to the first image.
         if (imageIndex >= indexList.length()) imageIndex = firstImageIndex;
 
-        // Load the image into a pixmap
-        QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
-        if (pixmap.isNull()) continue;
-
-        imageAspect = pixmap.width() / pixmap.height();
-//        qDebug() << __FILE__ << __FUNCTION__ << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << pixmap.width() << "x" << pixmap.height();
-
-        // Figure out image orientation
-        if (imageAspect >= 1.0) {
-            // Image is landscape
-            imageLandscape = true;
-        } else {
-            // Image is portrait
-            imageLandscape = false;
-        }
-
-        // Get the layout rectangle where we want the image
+        // Get the layout rectangle and flags of where we want the image
         QRectF rect = imageLayoutCurr->getImageRect(layoutIndex);
+        imageFlags = imageLayoutCurr->getImageFlags(layoutIndex);
         layoutAspect = rect.width() / rect.height();
-
-        // Draw a bounding rectangle
-//        graphicsScene->addRect(rect,,QPen(QColor(255,255,255)));
 
         // Figure out layout position orientation
         if (layoutAspect >= 1.0) {
@@ -357,47 +339,92 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
             layoutLandscape = false;
         }
 
-        // Put the pixmap on the display
-        QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap);
+        // Load the image into a pixmap
+        QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
+        if (pixmap.isNull()) continue;
+
+        imageAspect = pixmap.width() / pixmap.height();
+
+        // Figure out image orientation
+        if (imageAspect >= 1.0) {
+            // Image is landscape
+            imageLandscape = true;
+        } else {
+            // Image is portrait
+            imageLandscape = false;
+        }
+
+        // Crop if needed
+        if ((imageFlags && QImageLayoutButton::CROP_IMAGE)) {
+            int origWidth, origHeight;
+            origWidth = pixmap.width();
+            origHeight = pixmap.height();
+
+            qDebug() << __FILE__ << __FUNCTION__ << "Cropping from" << origWidth << "x" << origHeight;
+        }
 
         // Local variables
-        qreal x,y,r1,r2;
+        qreal x,y;
+        qreal r1,r2;
+        qreal rotation = 0.0;
+        qreal newX1 = 0.0;
+        qreal newY1 = 0.0;
+        qreal newX2 = pixmap.width();
+        qreal newY2 = pixmap.height();
 
         // Move/Scale the image to the appropriate location
         if (imageLandscape != layoutLandscape) {
             // Different orientations so we need to rotate the image to fit the layout
-            item->setRotation(90.0);
+            rotation = 90.0;
 
             x  = rect.right();
             y  = rect.top();
             r1 = (qreal) rect.width()/(qreal) pixmap.height();
             r2 = (qreal) rect.height()/(qreal) pixmap.width();
 
-            if (r1 > r2) {
-                r1 = r2;
+            if ((imageFlags && QImageLayoutButton::CROP_IMAGE)) {
+                if (r1 < r2) {
+                    r1 = r2;
+                }
+            } else {
+                if (r1 > r2) {
+                    r1 = r2;
+                }
             }
 
             x -= (rect.width() - pixmap.height() * r1) / 2.0;
             y -= (rect.height() - pixmap.width() * r1) / 2.0;
         } else {
             // Same orientation so no rotation necessary
-            item->setRotation(0.0);
+            rotation = 0.0;
 
             x  = rect.left();
             y  = rect.top();
             r1 = (qreal) rect.width()/(qreal) pixmap.width();
             r2 = (qreal) rect.height()/(qreal) pixmap.height();
 
-            if (r1 > r2) {
-                r1 = r2;
+            if ((imageFlags && QImageLayoutButton::CROP_IMAGE)) {
+                if (r1 < r2) {
+                    r1 = r2;
+                }
+            } else {
+                if (r1 > r2) {
+                    r1 = r2;
+                }
             }
 
             x += (rect.width() - pixmap.width() * r1) / 2.0;
             y -= (rect.height() - pixmap.height() * r1) / 2.0;
         }
 
+        // Put the pixmap on the display
+        QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap.copy(newX1, newY1, newX2, newY2));
+        item->setRotation(rotation);
         item->setScale(r1);
         item->setPos(x,y);
+
+        // Draw a bounding rectangle
+        graphicsScene->addRect(rect,QPen(QColor(0,0,0)));
     }
 }
 
@@ -634,7 +661,7 @@ void MainWindow::OnEMail()
             } else {
                 qDebug() << __FILE__ << __FUNCTION__ << "Failed to open Email List file";
             }
-
+#if 0
             QString url("mailto:");
             url.append(ui->lineEditEmail->text());
             url.append("?subject=File from Santa.&X-Mailer=SantaShip&body=Test message\n\nFrom Santa");
@@ -642,6 +669,7 @@ void MainWindow::OnEMail()
             url.append(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
             url.append("\"");
             QDesktopServices::openUrl(QUrl(url));
+#endif //0
         }
     }
 #endif

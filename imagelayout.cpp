@@ -28,7 +28,7 @@ QImageLayoutButton::~QImageLayoutButton()
 
 void QImageLayoutButton::initLayout()
 {
-    imageList = new QList<QRectF>();
+    imageList = new QList<TImage>();
     rect.setCoords(0,0,0,0);
 }
 
@@ -43,9 +43,13 @@ void QImageLayoutButton::setRect(qreal x, qreal y, qreal w, qreal h)
     setRect(QRectF(x,y,w,h));
 }
 
-void QImageLayoutButton::addImage(QRectF rect)
+void QImageLayoutButton::addImage(QRectF rect, int flags)
 {
-    imageList->append(rect);
+    TImage *image = new TImage;
+    image->rect = rect;
+    image->flags = flags;
+    imageList->append(*image);
+
     // Adjust the bounding rectangle if necessary
     if (rect.left()   < this->rect.left()  ) this->rect.setLeft(rect.left());
     if (rect.right()  > this->rect.right() ) this->rect.setRight(rect.right());
@@ -53,8 +57,8 @@ void QImageLayoutButton::addImage(QRectF rect)
     if (rect.bottom() > this->rect.bottom()) this->rect.setBottom(rect.bottom());
 }
 
-void QImageLayoutButton::addImage(qreal x, qreal y, qreal w, qreal h)
+void QImageLayoutButton::addImage(qreal x, qreal y, qreal w, qreal h, int flags)
 {
     // Just call the other variant so everthing is done in one place
-    addImage(QRectF(x,y,w,h));
+    addImage(QRectF(x,y,w,h), flags);
 }
