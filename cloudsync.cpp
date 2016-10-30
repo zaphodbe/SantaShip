@@ -65,40 +65,51 @@ void cloudsync::run()
                     // We will use the Gmail's smtp server (smtp.gmail.com, port 465, ssl)
                     qDebug() << "emailServer" << emailServer;
                     qDebug() << "emailPort" << emailPort;
-                    qDebug() << "emailSender" << emailSender;
-                    qDebug() << "emailSenderName" << emailSenderName;
+                    qDebug() << "emailUser" << emailUser;
+                    qDebug() << "emailFrom" << emailFrom;
+                    qDebug() << "emailDomain" << emailDomain;
                     qDebug() << "emailPassword" << emailPassword;
 
-                    SmtpClient smtp(emailServer, emailPort, SmtpClient::SslConnection);
+                    SmtpClient smtp(emailServer, emailPort, SmtpClient::TcpConnection);
 
                     // We need to set the username (your email address) and password
                     // for smtp authentification.
 
-                    smtp.setUser(emailSender);
+                    smtp.setUser(emailUser);
                     smtp.setPassword(emailPassword);
-                    //smtp.setConnectionType(SmtpClient::TlsConnection);
+                    smtp.setName(emailDomain);
 
                     // Now we create a MimeMessage object. This is the email.
 
                     MimeMessage message;
 
-                    EmailAddress sender(emailSender, emailSenderName);
+                    EmailAddress sender(emailUser, emailFrom);
                     message.setSender(&sender);
 
-                    EmailAddress to("cooley@zaphod.com", "Chris Coley");
+                    QString rcptTo;
+                    rcptTo = file.readLine();
+                    rcptTo.chop(1);
+
+                    EmailAddress to(rcptTo, rcptTo);
                     message.addRecipient(&to);
 
-                    message.setSubject("SmtpClient for Qt - Demo");
+                    message.setSubject("Pictures with Santa on the Magic Ship");
 
                     // Now add some text to the email.
                     // First we create a MimeText object.
 
-                    MimeText text;
+                    QString msgText;
+                    //msgText << "To: " << ui->lineEditEmail->text() << "\n";
+                    //msgText << "From: Santa Claus <Santa@MagicShipOfChristmas.org>\n";
+                    //msgText << "Subject: Pictures with Santa on the Magic Ship\n";
+                    //msgText << "\n";
+                    msgText += "These are your pictures with Santa on the Magic Ship of Christmas\n\n";
+                    msgText += file.readAll();
+                    msgText += "\nThank you\nSanta Claus\nTroop / Crew 799\nMorgan Hill\n";
 
-                    text.setText("Hi,\nThis is a simple email message.\n");
+                    MimeText text(msgText);
 
                     // Now add it to the mail
-
                     message.addPart(&text);
 
                     // Now we can send the mail
@@ -119,6 +130,10 @@ void cloudsync::run()
                     }
 
                     smtp.quit();
+
+                    qDebug() << "Successfully staged E-Mail";
+                    file.close();
+                    file.remove();
                 } else {
                     qDebug() << "Error opening file" << file.fileName();
                 }

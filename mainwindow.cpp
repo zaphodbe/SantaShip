@@ -615,11 +615,7 @@ void MainWindow::OnEMail()
         emailFile.open(QIODevice::Append);
         QTextStream emailStream (&emailFile);
 
-        emailStream << "To: " << ui->lineEditEmail->text() << "\n";
-        emailStream << "From: Santa Claus <Santa@MagicShipOfChristmas.org>\n";
-        emailStream << "Subject: Pictures with Santa on the Magic Ship\n";
-        emailStream << "\n";
-        emailStream << "These are your pictures with Santa on the Magic Ship of Christmas\n\n";
+        emailStream << ui->lineEditEmail->text() << "\n";
 
         qDebug() << "emailID" << emailID;
 
@@ -639,7 +635,6 @@ void MainWindow::OnEMail()
             emailStream << "https://s3-us-west-1.amazonaws.com/magicshipphotos/" + destFileName << "\n";
         }
 
-        emailStream << "\nThank you\nSanta Claus\nTroop / Crew 799\nMorgan Hill\n";
         emailFile.close();
     }
 #else
@@ -908,8 +903,9 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
     cloudSetup.setS3Access(cloudSyncThread.S3Access);
     cloudSetup.setS3Secret(cloudSyncThread.S3Secret);
     cloudSetup.setS3Bucket(cloudSyncThread.S3Bucket);
-    cloudSetup.setEMailName(cloudSyncThread.emailSenderName);
-    cloudSetup.setEMailUser(cloudSyncThread.emailSender);
+    cloudSetup.setEMailFrom(cloudSyncThread.emailFrom);
+    cloudSetup.setEMailDomain(cloudSyncThread.emailDomain);
+    cloudSetup.setEMailUser(cloudSyncThread.emailUser);
     cloudSetup.setEMailPassword(cloudSyncThread.emailPassword);
     cloudSetup.setEMailServer(cloudSyncThread.emailServer);
     cloudSetup.setEMailPort(cloudSyncThread.emailPort);
@@ -920,8 +916,9 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
         cloudSyncThread.S3Access = cloudSetup.getS3Access();
         cloudSyncThread.S3Secret = cloudSetup.getS3Secret();
         cloudSyncThread.S3Bucket = cloudSetup.getS3Bucket();
-        cloudSyncThread.emailSenderName = cloudSetup.getEMailName();
-        cloudSyncThread.emailSender = cloudSetup.getEMailUser();
+        cloudSyncThread.emailFrom = cloudSetup.getEMailFrom();
+        cloudSyncThread.emailDomain = cloudSetup.getEMailDomain();
+        cloudSyncThread.emailUser = cloudSetup.getEMailUser();
         cloudSyncThread.emailPassword = cloudSetup.getEMailPassword();
         cloudSyncThread.emailServer = cloudSetup.getEMailServer();
         cloudSyncThread.emailPort = cloudSetup.getEMailPort();
@@ -993,8 +990,9 @@ void MainWindow::writeSettings()
     settings->setValue("S3Secret", cloudSyncThread.S3Secret);
     settings->setValue("S3Bucket", cloudSyncThread.S3Bucket);
 
-    settings->setValue("EMailSender", cloudSyncThread.emailSender);
-    settings->setValue("EMailSenderName", cloudSyncThread.emailSenderName);
+    settings->setValue("EMailUser", cloudSyncThread.emailUser);
+    settings->setValue("EMailFrom", cloudSyncThread.emailFrom);
+    settings->setValue("EMailDomain", cloudSyncThread.emailDomain);
     settings->setValue("EMailPassword", cloudSyncThread.emailPassword);
     settings->setValue("EMailServer", cloudSyncThread.emailServer);
     settings->setValue("EMailPort", cloudSyncThread.emailPort);
@@ -1098,8 +1096,9 @@ void MainWindow::readSettings()
     cloudSyncThread.S3Secret = settings->value("S3Secret").toString();
     cloudSyncThread.S3Bucket = settings->value("S3Bucket").toString();
 
-    cloudSyncThread.emailSender = settings->value("EMailSender").toString();
-    cloudSyncThread.emailSenderName = settings->value("EMailSenderName").toString();
+    cloudSyncThread.emailUser = settings->value("EMailUser").toString();
+    cloudSyncThread.emailFrom = settings->value("EMailFrom").toString();
+    cloudSyncThread.emailDomain = settings->value("EMailDomain").toString();
     cloudSyncThread.emailPassword = settings->value("EMailPassword").toString();
     cloudSyncThread.emailServer = settings->value("EMailServer").toString();
     cloudSyncThread.emailPort = settings->value("EMailPort").toInt();

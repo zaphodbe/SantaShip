@@ -28,9 +28,14 @@ void DialogCloudSetup::setS3Bucket(QString value)
     ui->lineEditS4Bucket->setText(value);
 }
 
-void DialogCloudSetup::setEMailName(QString value)
+void DialogCloudSetup::setEMailFrom(QString value)
 {
-    ui->lineEditEMailName->setText(value);
+    ui->lineEditEMailFrom->setText(value);
+}
+
+void DialogCloudSetup::setEMailDomain(QString value)
+{
+    ui->lineEditEMailDomain->setText(value);
 }
 
 void DialogCloudSetup::setEMailUser(QString value)
@@ -68,9 +73,14 @@ QString DialogCloudSetup::getS3Bucket()
     return ui->lineEditS4Bucket->text();
 }
 
-QString DialogCloudSetup::getEMailName()
+QString DialogCloudSetup::getEMailFrom()
 {
-    return ui->lineEditEMailName->text();
+    return ui->lineEditEMailFrom->text();
+}
+
+QString DialogCloudSetup::getEMailDomain()
+{
+    return ui->lineEditEMailDomain->text();
 }
 
 QString DialogCloudSetup::getEMailUser()

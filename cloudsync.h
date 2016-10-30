@@ -17,8 +17,9 @@ public:
     QString S3Bucket;
 
     QString emailServer;
-    QString emailSender;
-    QString emailSenderName;
+    QString emailUser;
+    QString emailFrom;
+    QString emailDomain;
     QString emailPassword;
     int     emailPort;
 };
