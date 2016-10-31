@@ -9,37 +9,37 @@ INCLUDEPATH += $$PWD
 QT += core network
 
 SOURCES += \
-    $$PWD/src/emailaddress.cpp \
-    $$PWD/src/mimeattachment.cpp \
-    $$PWD/src/mimefile.cpp \
-    $$PWD/src/mimehtml.cpp \
-    $$PWD/src/mimeinlinefile.cpp \
-    $$PWD/src/mimemessage.cpp \
-    $$PWD/src/mimepart.cpp \
-    $$PWD/src/mimetext.cpp \
-    $$PWD/src/smtpclient.cpp \
-    $$PWD/src/quotedprintable.cpp \
-    $$PWD/src/mimemultipart.cpp \
-    $$PWD/src/mimecontentformatter.cpp \
+    $$PWD/SmtpClient-for-Qt/src/emailaddress.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimeattachment.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimefile.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimehtml.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimeinlinefile.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimemessage.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimepart.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimetext.cpp \
+    $$PWD/SmtpClient-for-Qt/src/smtpclient.cpp \
+    $$PWD/SmtpClient-for-Qt/src/quotedprintable.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimemultipart.cpp \
+    $$PWD/SmtpClient-for-Qt/src/mimecontentformatter.cpp \
 
 HEADERS  += \
-    $$PWD/src/emailaddress.h \
-    $$PWD/src/mimeattachment.h \
-    $$PWD/src/mimefile.h \
-    $$PWD/src/mimehtml.h \
-    $$PWD/src/mimeinlinefile.h \
-    $$PWD/src/mimemessage.h \
-    $$PWD/src/mimepart.h \
-    $$PWD/src/mimetext.h \
-    $$PWD/src/smtpclient.h \
-    $$PWD/src/SmtpMime \
-    $$PWD/src/quotedprintable.h \
-    $$PWD/src/mimemultipart.h \
-    $$PWD/src/mimecontentformatter.h \
-    $$PWD/src/smtpexports.h
+    $$PWD/SmtpClient-for-Qt/src/emailaddress.h \
+    $$PWD/SmtpClient-for-Qt/src/mimeattachment.h \
+    $$PWD/SmtpClient-for-Qt/src/mimefile.h \
+    $$PWD/SmtpClient-for-Qt/src/mimehtml.h \
+    $$PWD/SmtpClient-for-Qt/src/mimeinlinefile.h \
+    $$PWD/SmtpClient-for-Qt/src/mimemessage.h \
+    $$PWD/SmtpClient-for-Qt/src/mimepart.h \
+    $$PWD/SmtpClient-for-Qt/src/mimetext.h \
+    $$PWD/SmtpClient-for-Qt/src/smtpclient.h \
+    $$PWD/SmtpClient-for-Qt/src/SmtpMime \
+    $$PWD/SmtpClient-for-Qt/src/quotedprintable.h \
+    $$PWD/SmtpClient-for-Qt/src/mimemultipart.h \
+    $$PWD/SmtpClient-for-Qt/src/mimecontentformatter.h \
+    $$PWD/SmtpClient-for-Qt/src/smtpexports.h
 
 OTHER_FILES += \
-    $$PWD/LICENSE \
-    $$PWD/README.md
+    $$PWD/SmtpClient-for-Qt/LICENSE \
+    $$PWD/SmtpClient-for-Qt/README.md
 
 FORMS +=

@@ -632,7 +632,7 @@ void MainWindow::OnEMail()
             qDebug() << "Copy file" << srcFileName << "to" << destFileName;
 
             QFile::copy(fileModel->rootPath() + "/" + srcFileName, cloudSyncThread.filesDirName + "/" + destFileName);
-            emailStream << "https://s3-us-west-1.amazonaws.com/magicshipphotos/" + destFileName << "\n";
+            emailStream << destFileName << "\n";
         }
 
         emailFile.close();

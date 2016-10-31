@@ -17,7 +17,7 @@ unix: CFLAGS += -DDEFAULT_DIR="~/Pictures"
 #CFLAGS += QT_NO_DEBUG_OUTPUT
 
 include(qts3/qts3.pri)
-include(SmtpClient-for-Qt/SMTPEmail.pri)
+include(SMTPEmail.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp \

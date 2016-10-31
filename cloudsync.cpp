@@ -31,6 +31,8 @@ void cloudsync::run()
 
     while (1) {
         QtS3 s3(S3Access,S3Secret);
+        QStringList headers;
+        headers << "Content-Type: image/jpeg";
 
         // First process any pending images to send to the cloud
         QStringList files = filesDir.entryList(QDir::Files);
@@ -40,7 +42,7 @@ void cloudsync::run()
             QFile srcFile(filesDir.absolutePath() + "/" + files.at(i));
             if (srcFile.open(QIODevice::ReadOnly)) {
                 QByteArray data = srcFile.readAll();
-                QtS3Reply<void> putReply = s3.put(S3Bucket.toLocal8Bit() ,files.at(i) ,data );
+                QtS3Reply<void> putReply = s3.put(S3Bucket.toLocal8Bit() ,files.at(i) ,data ,headers);
                 if (putReply.isSuccess()) {
                     qDebug() << "Put successful deleting local copy";
                     srcFile.close();
@@ -55,7 +57,7 @@ void cloudsync::run()
         }
 
         // If all the files are uploaded send any pending E-Mails
-        if (allSunk) {
+        if (allSunk && !emailServer.isEmpty() && !emailDomain.isEmpty() && !emailUser.isEmpty() && !emailFrom.isEmpty() && !emailPassword.isEmpty()) {
             files = emailDir.entryList(QDir::Files);
             for (int i = 0; i < files.size(); i++) {
                 qDebug() << "Processing email:" << files.at(i);
@@ -71,6 +73,8 @@ void cloudsync::run()
                     qDebug() << "emailPassword" << emailPassword;
 
                     SmtpClient smtp(emailServer, emailPort, SmtpClient::TcpConnection);
+//                    SmtpClient smtp(emailServer, emailPort, SmtpClient::TlsConnection);
+//                    SmtpClient smtp(emailServer, emailPort, SmtpClient::SslConnection);
 
                     // We need to set the username (your email address) and password
                     // for smtp authentification.
@@ -99,12 +103,11 @@ void cloudsync::run()
                     // First we create a MimeText object.
 
                     QString msgText;
-                    //msgText << "To: " << ui->lineEditEmail->text() << "\n";
-                    //msgText << "From: Santa Claus <Santa@MagicShipOfChristmas.org>\n";
-                    //msgText << "Subject: Pictures with Santa on the Magic Ship\n";
-                    //msgText << "\n";
-                    msgText += "These are your pictures with Santa on the Magic Ship of Christmas\n\n";
-                    msgText += file.readAll();
+                    msgText += "These are your pictures with Santa on the Magic Ship of Christmas.  They will be available for at least 30 days using the links below.\n\n";
+                    while (!file.atEnd()) {
+                        QString destFileName = file.readLine();
+                        msgText += "https://s3-us-west-1.amazonaws.com/" + S3Bucket + "/" + destFileName;
+                    }
                     msgText += "\nThank you\nSanta Claus\nTroop / Crew 799\nMorgan Hill\n";
 
                     MimeText text(msgText);
