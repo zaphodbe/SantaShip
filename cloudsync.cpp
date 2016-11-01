@@ -3,7 +3,6 @@
 #include <QDir>
 #include <QDebug>
 #include "qts3.h"
-#include "SmtpClient-for-Qt/src/SmtpMime"
 
 cloudsync::cloudsync()
 {
@@ -71,10 +70,14 @@ void cloudsync::run()
                     qDebug() << "emailFrom" << emailFrom;
                     qDebug() << "emailDomain" << emailDomain;
                     qDebug() << "emailPassword" << emailPassword;
+                    qDebug() << "emailTransport" << emailTransport;
 
                     SmtpClient smtp(emailServer, emailPort, SmtpClient::TcpConnection);
-//                    SmtpClient smtp(emailServer, emailPort, SmtpClient::TlsConnection);
-//                    SmtpClient smtp(emailServer, emailPort, SmtpClient::SslConnection);
+                    if (emailTransport == QString("SSL")) {
+                        smtp.setConnectionType(SmtpClient::SslConnection);
+                    } else if (emailTransport == QString("TLS")) {
+                        smtp.setConnectionType(SmtpClient::TlsConnection);
+                    }
 
                     // We need to set the username (your email address) and password
                     // for smtp authentification.
@@ -82,6 +85,7 @@ void cloudsync::run()
                     smtp.setUser(emailUser);
                     smtp.setPassword(emailPassword);
                     smtp.setName(emailDomain);
+                    smtp.setAuthMethod(SmtpClient::AuthLogin);
 
                     // Now we create a MimeMessage object. This is the email.
 
@@ -110,6 +114,7 @@ void cloudsync::run()
                     }
                     msgText += "\nThank you\nSanta Claus\nTroop / Crew 799\nMorgan Hill\n";
 
+                    qDebug() << "Message: " << msgText;
                     MimeText text(msgText);
 
                     // Now add it to the mail

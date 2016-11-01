@@ -2,6 +2,7 @@
 #define CLOUDSYNC_H
 
 #include <QThread>
+#include "SmtpClient-for-Qt/src/SmtpMime"
 
 class cloudsync : public QThread
 {
@@ -22,6 +23,7 @@ public:
     QString emailDomain;
     QString emailPassword;
     int     emailPort;
+    QString emailTransport;
 };
 
 #endif // CLOUDSYNC_H

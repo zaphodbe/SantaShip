@@ -909,6 +909,7 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
     cloudSetup.setEMailPassword(cloudSyncThread.emailPassword);
     cloudSetup.setEMailServer(cloudSyncThread.emailServer);
     cloudSetup.setEMailPort(cloudSyncThread.emailPort);
+    cloudSetup.setEMailTransport(cloudSyncThread.emailTransport);
 
     int result = cloudSetup.exec();
 
@@ -922,6 +923,7 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
         cloudSyncThread.emailPassword = cloudSetup.getEMailPassword();
         cloudSyncThread.emailServer = cloudSetup.getEMailServer();
         cloudSyncThread.emailPort = cloudSetup.getEMailPort();
+        cloudSyncThread.emailTransport = cloudSetup.getEMailTransport();
     }
 #else
     Q_UNUSED (checked);
@@ -996,6 +998,7 @@ void MainWindow::writeSettings()
     settings->setValue("EMailPassword", cloudSyncThread.emailPassword);
     settings->setValue("EMailServer", cloudSyncThread.emailServer);
     settings->setValue("EMailPort", cloudSyncThread.emailPort);
+    settings->setValue("EMailTransport", cloudSyncThread.emailTransport);
 
     numItems = ui->splitter->sizes().length();
     for (i = 0; i < numItems; i++) {
@@ -1102,6 +1105,7 @@ void MainWindow::readSettings()
     cloudSyncThread.emailPassword = settings->value("EMailPassword").toString();
     cloudSyncThread.emailServer = settings->value("EMailServer").toString();
     cloudSyncThread.emailPort = settings->value("EMailPort").toInt();
+    cloudSyncThread.emailTransport = settings->value("EMailTransport").toString();
 
     numItems = settings->value("NumSplits", 3).toInt();
     QList<int> sizeList;

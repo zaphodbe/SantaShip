@@ -17,10 +17,10 @@ bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStrin
 
     bool result = true;
     QThread::sleep(1);
-    qDebug() << __FILE__ << __FUNCTION__ << "Loading" << pictureFileName;
+    //qDebug() << __FILE__ << __FUNCTION__ << "Loading" << pictureFileName;
     if (image.load(pictureFileName))
     {
-        qDebug() << __FILE__ << __FUNCTION__ << "Scaling" << pictureFileName;
+        //qDebug() << __FILE__ << __FUNCTION__ << "Scaling" << pictureFileName;
         // Create scaled cache image and save it
         image = image.scaledToWidth(USE_SCALED_ICON_WIDTH);
 
@@ -41,7 +41,7 @@ bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStrin
     }
     else
     {
-        qDebug() << __FILE__ << __FUNCTION__ << "Failed to load" << pictureFileName;
+        //qDebug() << __FILE__ << __FUNCTION__ << "Failed to load" << pictureFileName;
         // Picture load failed
         result = false;
     }

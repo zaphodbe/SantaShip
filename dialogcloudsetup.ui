@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>344</height>
+    <height>369</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>50</x>
-     <y>300</y>
+     <y>330</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -169,7 +169,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>smtp.gmail.com</string>
+    <string/>
    </property>
    <property name="clearButtonEnabled">
     <bool>true</bool>
@@ -214,7 +214,7 @@
     <number>65535</number>
    </property>
    <property name="value">
-    <number>465</number>
+    <number>0</number>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEditEMailFrom">
@@ -274,6 +274,44 @@
    <property name="clearButtonEnabled">
     <bool>true</bool>
    </property>
+  </widget>
+  <widget class="QLabel" name="label_10">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>300</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Transport</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBoxTransport">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>300</y>
+     <width>281</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string extracomment="Plain Text">TCP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string extracomment="Secure Sockets Layer">SSL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string extracomment="Transport Layer Security">TLS</string>
+    </property>
+   </item>
   </widget>
  </widget>
  <tabstops>

@@ -58,6 +58,11 @@ void DialogCloudSetup::setEMailPort(int value)
     ui->spinBoxEMailPort->setValue(value);
 }
 
+void DialogCloudSetup::setEMailTransport(QString value)
+{
+    ui->comboBoxTransport->setCurrentText(value);
+}
+
 QString DialogCloudSetup::getS3Access()
 {
     return ui->lineEditS3Access->text();
@@ -101,4 +106,9 @@ QString DialogCloudSetup::getEMailServer()
 int DialogCloudSetup::getEMailPort()
 {
     return ui->spinBoxEMailPort->value();
+}
+
+QString DialogCloudSetup::getEMailTransport()
+{
+    return ui->comboBoxTransport->currentText();
 }

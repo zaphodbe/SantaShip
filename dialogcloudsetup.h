@@ -24,6 +24,7 @@ public:
     void setEMailPassword(QString value);
     void setEMailServer(QString value);
     void setEMailPort(int value);
+    void setEMailTransport(QString value);
 
     QString getS3Access(void);
     QString getS3Secret(void);
@@ -34,6 +35,7 @@ public:
     QString getEMailPassword(void);
     QString getEMailServer(void);
     int getEMailPort(void);
+    QString getEMailTransport(void);
 
 private:
     Ui::DialogCloudSetup *ui;
