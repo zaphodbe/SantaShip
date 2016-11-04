@@ -14,6 +14,11 @@ class QImageLayoutButton : public QPushButton
 {
     Q_OBJECT
 public:
+    enum    Flags
+    {
+        CROP_IMAGE      = 0x01
+    };
+
     QImageLayoutButton (QWidget *parent = 0);
     QImageLayoutButton (const QString & text, QWidget *parent = 0);
     QImageLayoutButton (const QIcon & icon, const QString & text, QWidget *parent = 0);
@@ -28,11 +33,6 @@ public:
     void    setRect(qreal x, qreal y, qreal w, qreal h);
     void    addImage(QRectF rect, int flags = 0);
     void    addImage(qreal x, qreal y, qreal w, qreal h, int flags = 0);
-
-    enum    Flags
-    {
-        CROP_IMAGE      = 0x01
-    };
 
 signals:
 

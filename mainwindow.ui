@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>825</width>
+    <width>882</width>
     <height>376</height>
    </rect>
   </property>
@@ -173,6 +173,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="checkBoxCrop">
+            <property name="text">
+             <string>Crop</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="checkBoxPreview">
             <property name="text">
              <string>Preview</string>
@@ -229,7 +239,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>825</width>
+     <width>882</width>
      <height>22</height>
     </rect>
    </property>
@@ -345,8 +355,8 @@
    <slot>OnBigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>216</x>
-     <y>342</y>
+     <x>215</x>
+     <y>362</y>
     </hint>
     <hint type="destinationlabel">
      <x>195</x>
@@ -361,8 +371,8 @@
    <slot>OnSmaller()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>322</x>
-     <y>342</y>
+     <x>265</x>
+     <y>362</y>
     </hint>
     <hint type="destinationlabel">
      <x>246</x>
@@ -377,8 +387,8 @@
    <slot>OnDefaults()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>814</x>
-     <y>169</y>
+     <x>514</x>
+     <y>347</y>
     </hint>
     <hint type="destinationlabel">
      <x>820</x>
@@ -393,8 +403,8 @@
    <slot>OnEMail()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>814</x>
-     <y>111</y>
+     <x>868</x>
+     <y>301</y>
     </hint>
     <hint type="destinationlabel">
      <x>820</x>
@@ -409,12 +419,28 @@
    <slot>OnArchive()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>668</x>
-     <y>125</y>
+     <x>362</x>
+     <y>347</y>
     </hint>
     <hint type="destinationlabel">
      <x>880</x>
      <y>136</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxCrop</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnCrop()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>552</x>
+     <y>332</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>566</x>
+     <y>368</y>
     </hint>
    </hints>
   </connection>
@@ -429,5 +455,6 @@
   <slot>OnDefaults()</slot>
   <slot>OnEMail()</slot>
   <slot>OnArchive()</slot>
+  <slot>OnCrop()</slot>
  </slots>
 </ui>

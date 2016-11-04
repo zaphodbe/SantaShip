@@ -125,6 +125,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // ToDo load these from discription files
     QImageLayoutButton *layoutButton;
 
+    layoutButton = newImageLayout(QString("4x6 L"));
+    layoutButton->setRect(0,0,6000,4000);
+    layoutButton->addImage(QRectF(0,0,6000,4000), QImageLayoutButton::CROP_IMAGE);
+
     layoutButton = newImageLayout(QString("1 Up L"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(0,0,11000,8500));
@@ -144,6 +148,10 @@ MainWindow::MainWindow(QWidget *parent) :
     layoutButton = newImageLayout(QString("One 8x10 L"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(500,250,10000,8000));
+
+    layoutButton = newImageLayout(QString("4x6 P"));
+    layoutButton->setRect(0,0,4000,6000);
+    layoutButton->addImage(QRectF(0,0,4000,6000), QImageLayoutButton::CROP_IMAGE);
 
     layoutButton = newImageLayout(QString("1 Up P"));
     layoutButton->setRect(0,0,8500,11000);
@@ -256,6 +264,12 @@ void MainWindow::OnThumbnailTimeout()
 
 }
 
+void MainWindow::OnCrop()
+{
+    LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+    OnResize();
+}
+
 void MainWindow::restartThumbnailTimer()
 {
     // Set timeout to notify app to reload thus refresh thumbnails
@@ -326,9 +340,9 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
         if (imageIndex >= indexList.length()) imageIndex = firstImageIndex;
 
         // Get the layout rectangle and flags of where we want the image
-        QRectF rect = imageLayoutCurr->getImageRect(layoutIndex);
+        QRectF layoutRect = imageLayoutCurr->getImageRect(layoutIndex);
         imageFlags = imageLayoutCurr->getImageFlags(layoutIndex);
-        layoutAspect = rect.width() / rect.height();
+        layoutAspect = layoutRect.width() / layoutRect.height();
 
         // Figure out layout position orientation
         if (layoutAspect >= 1.0) {
@@ -354,78 +368,60 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
             imageLandscape = false;
         }
 
-        // Crop if needed
-        if ((imageFlags && QImageLayoutButton::CROP_IMAGE)) {
-            int origWidth, origHeight;
-            origWidth = pixmap.width();
-            origHeight = pixmap.height();
-
-            qDebug() << __FILE__ << __FUNCTION__ << "Cropping from" << origWidth << "x" << origHeight;
-        }
-
         // Local variables
         qreal x,y;
         qreal r1,r2;
         qreal rotation = 0.0;
+
+        // Move/Scale the image to the appropriate location
+        if (imageLandscape != layoutLandscape) {
+            // Different orientations so we need to rotate the image to fit the layout
+            rotation = 90;
+            QTransform trans;
+            trans.rotate(rotation);
+            pixmap = pixmap.transformed(trans);
+        }
+
         qreal newX1 = 0.0;
         qreal newY1 = 0.0;
         qreal newX2 = pixmap.width();
         qreal newY2 = pixmap.height();
 
-        // Move/Scale the image to the appropriate location
-        if (imageLandscape != layoutLandscape) {
-            // Different orientations so we need to rotate the image to fit the layout
-            rotation = 90.0;
+        x  = layoutRect.left();
+        y  = layoutRect.top();
+        r1 = (qreal) layoutRect.width()/(qreal) pixmap.width();
+        r2 = (qreal) layoutRect.height()/(qreal) pixmap.height();
 
-            x  = rect.right();
-            y  = rect.top();
-            r1 = (qreal) rect.width()/(qreal) pixmap.height();
-            r2 = (qreal) rect.height()/(qreal) pixmap.width();
-
-            if ((imageFlags && QImageLayoutButton::CROP_IMAGE)) {
-                if (r1 < r2) {
-                    r1 = r2;
-                }
-            } else {
-                if (r1 > r2) {
-                    r1 = r2;
-                }
+        if ((imageFlags & QImageLayoutButton::CROP_IMAGE) || ui->checkBoxCrop->isChecked()) {
+            if (r1 < r2) {
+                r1 = r2;
             }
-
-            x -= (rect.width() - pixmap.height() * r1) / 2.0;
-            y -= (rect.height() - pixmap.width() * r1) / 2.0;
+            newX1 = ((pixmap.width() * r1) - layoutRect.width()) / (2 * r1);
+            newY1 = ((pixmap.height() * r1) - layoutRect.height()) / (2 * r1);
+            newX2 -= 2 * newX1;
+            newY2 -= 2 * newY1;
+            x += newX1 * r1;
+            y += newY1 * r1;
         } else {
-            // Same orientation so no rotation necessary
-            rotation = 0.0;
-
-            x  = rect.left();
-            y  = rect.top();
-            r1 = (qreal) rect.width()/(qreal) pixmap.width();
-            r2 = (qreal) rect.height()/(qreal) pixmap.height();
-
-            if ((imageFlags && QImageLayoutButton::CROP_IMAGE)) {
-                if (r1 < r2) {
-                    r1 = r2;
-                }
-            } else {
-                if (r1 > r2) {
-                    r1 = r2;
-                }
+            if (r1 > r2) {
+                r1 = r2;
             }
-
-            x += (rect.width() - pixmap.width() * r1) / 2.0;
-            y -= (rect.height() - pixmap.height() * r1) / 2.0;
         }
+
+        x += (layoutRect.width() - pixmap.width() * r1) / 2.0;
+        y += (layoutRect.height() - pixmap.height() * r1) / 2.0;
 
         // Put the pixmap on the display
         QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap.copy(newX1, newY1, newX2, newY2));
-        item->setRotation(rotation);
         item->setScale(r1);
         item->setPos(x,y);
 
         // Draw a bounding rectangle
-        graphicsScene->addRect(rect,QPen(QColor(0,0,0)));
+        graphicsScene->addRect(layoutRect,QPen(QColor(0,0,0)));
     }
+
+    qreal border = 1000;
+    graphicsScene->setSceneRect(imageLayoutCurr->rect.left() - border, imageLayoutCurr->rect.top() - border, imageLayoutCurr->rect.width() + 2 * border, imageLayoutCurr->rect.height() + 2 * border);
 }
 
 void MainWindow::OnResize()
@@ -774,6 +770,9 @@ void MainWindow::OnDefaults()
 
     // Set the copies count back to 1
     ui->spinBoxCopies->setValue(1);
+
+    // Set Crop
+    ui->checkBoxCrop->setChecked(true);
 
     // Set the layout back to default (first entry)
     OnLayout(imageLayoutList.first());
