@@ -29,6 +29,15 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+public:
+    enum {
+        OVERLAY_TOPLEFT,
+        OVERLAY_TOPRIGHT,
+        OVERLAY_BOTTOMRIGHT,
+        OVERLAY_BOTTOMLEFT,
+        OVERLAY_WHOLEIMAGE,
+    };
+
 private:
     explicit MainWindow(QWidget *parent = 0);
 
@@ -50,6 +59,9 @@ public:
 protected:
     void resizeEvent(QResizeEvent *event);
 
+    void loadLayouts();
+    void loadOverlays();
+
 signals:
 
 public slots:
@@ -69,6 +81,8 @@ public slots:
     void OnArchive();
     void OnThumbnailTimeout();
     void OnCrop();
+    void OnOverlay(QString text);
+    void OnOverlay();
 
     void genIconsStart();
     void genIconsDone();
@@ -114,6 +128,8 @@ private:
     bool                         deselectInProcess;
     QTimer                      *thumbnailTimer;
     cloudsync                    cloudSyncThread;
+    QStringList                  overlayFiles;
+    QPixmap                     *overlayPixmap;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(QString name);

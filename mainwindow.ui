@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>882</width>
+    <width>897</width>
     <height>376</height>
    </rect>
   </property>
@@ -126,6 +126,35 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_Email">
           <item>
+           <widget class="QComboBox" name="comboBoxOverlay"/>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBoxOverlayLocation"/>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="spinBoxOverlayScale">
+            <property name="suffix">
+             <string>%</string>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>25</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxOverlayMask">
+            <property name="text">
+             <string>Overlay Mask</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLineEdit" name="lineEditEmail">
             <property name="enabled">
              <bool>true</bool>
@@ -239,7 +268,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>882</width>
+     <width>897</width>
      <height>22</height>
     </rect>
    </property>
@@ -403,8 +432,8 @@
    <slot>OnEMail()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>868</x>
-     <y>301</y>
+     <x>883</x>
+     <y>300</y>
     </hint>
     <hint type="destinationlabel">
      <x>820</x>
@@ -444,6 +473,70 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>comboBoxOverlay</sender>
+   <signal>currentTextChanged(QString)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnOverlay(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>338</x>
+     <y>288</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>375</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>comboBoxOverlayLocation</sender>
+   <signal>currentTextChanged(QString)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnOverlay(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>486</x>
+     <y>296</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>492</x>
+     <y>375</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxOverlayMask</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnOverlay()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>664</x>
+     <y>286</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>680</x>
+     <y>407</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBoxOverlayScale</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>OnOverlay()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>532</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>554</x>
+     <y>561</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>OnDir()</slot>
@@ -456,5 +549,7 @@
   <slot>OnEMail()</slot>
   <slot>OnArchive()</slot>
   <slot>OnCrop()</slot>
+  <slot>OnOverlay(QString)</slot>
+  <slot>OnOverlay()</slot>
  </slots>
 </ui>

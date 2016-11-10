@@ -13,6 +13,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QtConcurrent/QtConcurrent>
+#include <QBitmap>
 
 #include <qts3.h>
 
@@ -122,59 +123,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(signalMapperLayout, SIGNAL(mapped(QWidget*)), this, SLOT(OnLayout(QWidget*)));
 
     // Setup the Layout buttons.
-    // ToDo load these from discription files
-    QImageLayoutButton *layoutButton;
+    loadLayouts();
 
-    layoutButton = newImageLayout(QString("4x6 L"));
-    layoutButton->setRect(0,0,6000,4000);
-    layoutButton->addImage(QRectF(0,0,6000,4000), QImageLayoutButton::CROP_IMAGE);
-
-    layoutButton = newImageLayout(QString("1 Up L"));
-    layoutButton->setRect(0,0,11000,8500);
-    layoutButton->addImage(QRectF(0,0,11000,8500));
-
-    layoutButton = newImageLayout(QString("2 Up L"));
-    layoutButton->setRect(0,0,11000,8500);
-    layoutButton->addImage(QRectF(0,0,5500,8500));
-    layoutButton->addImage(QRectF(5500,0,5500,8500));
-
-    layoutButton = newImageLayout(QString("4 Up L"));
-    layoutButton->setRect(0,0,11000,8500);
-    layoutButton->addImage(QRectF(0,0,5500,4250));
-    layoutButton->addImage(QRectF(0,4250,5500,4250));
-    layoutButton->addImage(QRectF(5500,0,5500,4250));
-    layoutButton->addImage(QRectF(5500,4250,5500,4250));
-
-    layoutButton = newImageLayout(QString("One 8x10 L"));
-    layoutButton->setRect(0,0,11000,8500);
-    layoutButton->addImage(QRectF(500,250,10000,8000));
-
-    layoutButton = newImageLayout(QString("4x6 P"));
-    layoutButton->setRect(0,0,4000,6000);
-    layoutButton->addImage(QRectF(0,0,4000,6000), QImageLayoutButton::CROP_IMAGE);
-
-    layoutButton = newImageLayout(QString("1 Up P"));
-    layoutButton->setRect(0,0,8500,11000);
-    layoutButton->addImage(QRectF(0,0,8500,11000));
-
-    layoutButton = newImageLayout(QString("2 Up P"));
-    layoutButton->setRect(0,0,8500,11000);
-    layoutButton->addImage(QRectF(0,0,8500,5500));
-    layoutButton->addImage(QRectF(0,5500,8500,5500));
-
-    layoutButton = newImageLayout(QString("4 Up P"));
-    layoutButton->setRect(0,0,8500,11000);
-    layoutButton->addImage(QRectF(0,0,4250,5500));
-    layoutButton->addImage(QRectF(4250,0,4250,5500));
-    layoutButton->addImage(QRectF(0,5500,4250,5500));
-    layoutButton->addImage(QRectF(4250,5500,4250,5500));
-
-    layoutButton = newImageLayout(QString("One 8x10 P"));
-    layoutButton->setRect(0,0,8500,11000);
-    layoutButton->addImage(QRectF(250,500,8000,10000));
-
-    // Select the first layout as default
-    OnLayout(imageLayoutList.first());
+    // Setup the overlay location and scale combo's
+    ui->comboBoxOverlayLocation->addItem("Bottom Right",OVERLAY_BOTTOMRIGHT);
+    ui->comboBoxOverlayLocation->addItem("Bottom Left",OVERLAY_BOTTOMLEFT);
+    ui->comboBoxOverlayLocation->addItem("Top Left",OVERLAY_TOPLEFT);
+    ui->comboBoxOverlayLocation->addItem("Top Right",OVERLAY_TOPRIGHT);
+    ui->comboBoxOverlayLocation->addItem("Whole Image",OVERLAY_WHOLEIMAGE);
 
     // ToDo Make sure we resize the images when the graphicsView is resized.
     connect(ui->splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(OnResize()));
@@ -212,6 +168,7 @@ void MainWindow::OnDir()
 
 //    qDebug() << __FILE__ << __FUNCTION__ << directory;
     fileModel->setRootPath(directory);
+    OnOverlay();
 }
 
 void MainWindow::OnSmaller()
@@ -266,6 +223,32 @@ void MainWindow::OnThumbnailTimeout()
 
 void MainWindow::OnCrop()
 {
+    LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
+    OnResize();
+}
+
+void MainWindow::OnOverlay(QString text)
+{
+    Q_UNUSED(text);
+    OnOverlay();
+}
+
+void MainWindow::OnOverlay()
+{
+    if (ui->comboBoxOverlay->currentIndex()) {
+        overlayPixmap = new QPixmap(dirName + "/.Overlays/" + ui->comboBoxOverlay->currentText());
+        if (overlayPixmap) {
+            QBitmap overlayMask = overlayPixmap->createHeuristicMask();
+            if (ui->checkBoxOverlayMask->isChecked())
+                overlayPixmap->setMask(overlayMask);
+        }
+    } else {
+        if (overlayPixmap) {
+            delete overlayPixmap;
+            overlayPixmap = NULL;
+        }
+    }
+
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
     OnResize();
 }
@@ -418,9 +401,52 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
 
         // Draw a bounding rectangle
         graphicsScene->addRect(layoutRect,QPen(QColor(0,0,0)));
+
+        // Add any specified overlay
+        if (overlayPixmap) {
+            qreal overlayScale = ui->spinBoxOverlayScale->value() / 100.0;
+            r1 = (qreal) layoutRect.width()/(qreal) overlayPixmap->width()*overlayScale;
+            r2 = (qreal) layoutRect.height()/(qreal) overlayPixmap->height()*overlayScale;
+            if (r1 > r2)
+                r1 = r2;
+
+            item = graphicsScene->addPixmap(*overlayPixmap);
+            item->setScale(r1);
+
+            x  = layoutRect.left();
+            y  = layoutRect.top();
+            if (overlayScale != 1.0) {
+                switch(ui->comboBoxOverlayLocation->currentData().toInt()) {
+                case OVERLAY_TOPLEFT:
+                    x += layoutRect.width() * overlayScale / 2;
+                    y += layoutRect.height() * overlayScale / 2;
+                    break;
+
+                case OVERLAY_TOPRIGHT:
+                    x += layoutRect.width() - layoutRect.width() * overlayScale / 2 - overlayPixmap->width() * r1;
+                    y += layoutRect.height() * overlayScale / 2;
+                    break;
+
+                case OVERLAY_BOTTOMLEFT:
+                    x += layoutRect.width() * overlayScale / 2;
+                    y += layoutRect.height() - layoutRect.height() * overlayScale / 2 - overlayPixmap->height() * r1;
+                    break;
+
+                case OVERLAY_BOTTOMRIGHT:
+                    x += layoutRect.width() - layoutRect.width() * overlayScale / 2 - overlayPixmap->width() * r1;
+                    y += layoutRect.height() - layoutRect.height() * overlayScale / 2 - overlayPixmap->height() * r1;
+                    break;
+
+                case OVERLAY_WHOLEIMAGE:
+                    // No changes
+                    break;
+                }
+            }
+            item->setPos(x,y);
+        }
     }
 
-    qreal border = 1000;
+    qreal border = 0;
     graphicsScene->setSceneRect(imageLayoutCurr->rect.left() - border, imageLayoutCurr->rect.top() - border, imageLayoutCurr->rect.width() + 2 * border, imageLayoutCurr->rect.height() + 2 * border);
 }
 
@@ -962,6 +988,89 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     OnResize();
 }
 
+void MainWindow::loadLayouts()
+{
+    // ToDo load these from discription files
+    QImageLayoutButton *layoutButton;
+
+    layoutButton = newImageLayout(QString("4x6 L"));
+    layoutButton->setRect(0,0,6000,4000);
+    layoutButton->addImage(QRectF(0,0,6000,4000), QImageLayoutButton::CROP_IMAGE);
+
+    layoutButton = newImageLayout(QString("1 Up L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(0,0,11000,8500));
+
+    layoutButton = newImageLayout(QString("2 Up L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(0,0,5500,8500));
+    layoutButton->addImage(QRectF(5500,0,5500,8500));
+
+    layoutButton = newImageLayout(QString("4 Up L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(0,0,5500,4250));
+    layoutButton->addImage(QRectF(0,4250,5500,4250));
+    layoutButton->addImage(QRectF(5500,0,5500,4250));
+    layoutButton->addImage(QRectF(5500,4250,5500,4250));
+
+    layoutButton = newImageLayout(QString("One 8x10 L"));
+    layoutButton->setRect(0,0,11000,8500);
+    layoutButton->addImage(QRectF(500,250,10000,8000));
+
+    layoutButton = newImageLayout(QString("4x6 P"));
+    layoutButton->setRect(0,0,4000,6000);
+    layoutButton->addImage(QRectF(0,0,4000,6000), QImageLayoutButton::CROP_IMAGE);
+
+    layoutButton = newImageLayout(QString("1 Up P"));
+    layoutButton->setRect(0,0,8500,11000);
+    layoutButton->addImage(QRectF(0,0,8500,11000));
+
+    layoutButton = newImageLayout(QString("2 Up P"));
+    layoutButton->setRect(0,0,8500,11000);
+    layoutButton->addImage(QRectF(0,0,8500,5500));
+    layoutButton->addImage(QRectF(0,5500,8500,5500));
+
+    layoutButton = newImageLayout(QString("4 Up P"));
+    layoutButton->setRect(0,0,8500,11000);
+    layoutButton->addImage(QRectF(0,0,4250,5500));
+    layoutButton->addImage(QRectF(4250,0,4250,5500));
+    layoutButton->addImage(QRectF(0,5500,4250,5500));
+    layoutButton->addImage(QRectF(4250,5500,4250,5500));
+
+    layoutButton = newImageLayout(QString("One 8x10 P"));
+    layoutButton->setRect(0,0,8500,11000);
+    layoutButton->addImage(QRectF(250,500,8000,10000));
+
+    // Select the first layout as default
+    OnLayout(imageLayoutList.first());
+}
+
+void MainWindow::loadOverlays()
+{
+    QString overlayDirName = dirName + "/.Overlays";
+    QDir overlayDir(overlayDirName);
+    if (!overlayDir.exists())
+    {
+        // Overlay folder doesn't exist so create it
+        overlayDir.mkpath(overlayDirName);
+    }
+    overlayDir.cd(overlayDirName);
+
+    // Clear any existing overlays
+    ui->comboBoxOverlay->clear();
+
+    // Add the no overlay to the list
+    ui->comboBoxOverlay->addItem("<No Overlay>"); // Should always be index 0
+
+    // Add the possible overlays to the list and select the first as default
+    overlayFiles = overlayDir.entryList(QDir::Files);
+    if (overlayFiles.size()) {
+        ui->comboBoxOverlay->addItems(overlayFiles);
+//        ui->comboBoxOverlay->setCurrentIndex(1);
+        OnOverlay();
+    }
+}
+
 /*
  * Application settings
  */
@@ -998,6 +1107,11 @@ void MainWindow::writeSettings()
     settings->setValue("EMailServer", cloudSyncThread.emailServer);
     settings->setValue("EMailPort", cloudSyncThread.emailPort);
     settings->setValue("EMailTransport", cloudSyncThread.emailTransport);
+
+    settings->setValue("Overlay/index", ui->comboBoxOverlay->currentIndex());
+    settings->setValue("Overlay/loc", ui->comboBoxOverlayLocation->currentIndex());
+    settings->setValue("Overlay/scale", ui->spinBoxOverlayScale->value());
+    settings->setValue("Overlay/mask", ui->checkBoxOverlayMask->isChecked());
 
     numItems = ui->splitter->sizes().length();
     for (i = 0; i < numItems; i++) {
@@ -1086,6 +1200,13 @@ void MainWindow::readSettings()
     fileModel->setRootPath(dirName);
     cloudSyncThread.filesDirName = dirName + "/.AWS";
     cloudSyncThread.emailDirName = dirName + "/.EMail";
+
+    loadOverlays();
+    ui->comboBoxOverlay->setCurrentIndex(settings->value("Overlay/index", 0).toInt());
+    ui->comboBoxOverlayLocation->setCurrentIndex(settings->value("Overlay/loc",0).toInt());
+    ui->spinBoxOverlayScale->setValue(settings->value("Overlay/scale",25).toInt());
+    ui->checkBoxOverlayMask->setChecked(settings->value("Overlay/mask",true).toBool());
+    OnOverlay();
 
     ui->listView->setIconSize(settings->value("ThumbNailSize",ui->listView->iconSize()).toSize());
 //    ui->listView->setRootIndex(fileModel->index(dirName));
