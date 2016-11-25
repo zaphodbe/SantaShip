@@ -4,10 +4,10 @@
 #include <QThread>
 #include "SmtpClient-for-Qt/src/SmtpMime"
 
-class cloudsync : public QThread
+class cloudSyncThread : public QThread
 {
 public:
-    cloudsync();
+    cloudSyncThread();
     void run();
 
     QString filesDirName;

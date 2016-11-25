@@ -127,7 +127,7 @@ private:
     QString                      dirName;
     bool                         deselectInProcess;
     QTimer                      *thumbnailTimer;
-    cloudsync                    cloudSyncThread;
+    cloudSyncThread              cloudSync;
     QStringList                  overlayFiles;
     QPixmap                     *overlayPixmap;
 

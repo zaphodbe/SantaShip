@@ -140,7 +140,7 @@ MainWindow::MainWindow(QWidget *parent) :
     readSettings();
 
     // Start the thread to sync with the cloud
-    cloudSyncThread.start();
+    cloudSync.start();
 
 }
 
@@ -625,15 +625,16 @@ void MainWindow::OnEMail()
     // Get list of selected files
     QModelIndexList indexList = fileSelection->selectedIndexes();
 
-#if 1
-    if (ui->lineEditEmail->text() != QString("E-Mail Address") &&
+    if (ui->lineEditEmail->text().size() &&
+            ui->lineEditEmail->text().contains("@") &&
             fileSelection->hasSelection()) {
         // Only do E-Mail/Web if address entered and pictures are selected
         qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
 
+        // Create a file containing the email address
         QString emailID = QUuid::createUuid().toString().mid(1);
         emailID.chop(1);
-        QFile emailFile(cloudSyncThread.emailDirName + "/" + emailID + ".eml");
+        QFile emailFile(cloudSync.emailDirName + "/" + emailID + ".eml");
         emailFile.open(QIODevice::Append);
         QTextStream emailStream (&emailFile);
 
@@ -641,8 +642,7 @@ void MainWindow::OnEMail()
 
         qDebug() << "emailID" << emailID;
 
-        // Add the tags for EMail
-        // ToDo: Have this stage the EMails
+        // Add the picture ID's and copy the pictures to the staging folder
         for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
             QString srcFileName = fileModel->fileName(indexList.at(imageIndex));
             QFileInfo srcFileInfo(srcFileName);
@@ -653,43 +653,12 @@ void MainWindow::OnEMail()
 
             qDebug() << "Copy file" << srcFileName << "to" << destFileName;
 
-            QFile::copy(fileModel->rootPath() + "/" + srcFileName, cloudSyncThread.filesDirName + "/" + destFileName);
+            QFile::copy(fileModel->rootPath() + "/" + srcFileName, cloudSync.filesDirName + "/" + destFileName);
             emailStream << destFileName << "\n";
         }
 
         emailFile.close();
     }
-#else
-    if (ui->lineEditEmail->text().size() &&
-            fileSelection->hasSelection()) {
-        // Only do E-Mail if address entered and pictures are selected
-        qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
-
-        // Add the tags for EMail
-        // ToDo: Have this stage the EMails
-        for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
-            //fileModel->remove(indexList.at(imageIndex));
-            QFile EmailFile("EmailList.txt" /*"C:\WIP\EmailList.txt"*/);
-            qDebug() << __FILE__ << __FUNCTION__ << " " << QDateTime::currentDateTime() << ": Send " << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << " to " << ui->lineEditEmail->text();
-            if (EmailFile.open(QIODevice::Append)) {
-                QTextStream out (&EmailFile);
-                out << QDateTime::currentDateTime().toString() << ": Send \"" << fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath() << "\" to \"" << ui->lineEditEmail->text() << "\"\n";
-                EmailFile.close();
-            } else {
-                qDebug() << __FILE__ << __FUNCTION__ << "Failed to open Email List file";
-            }
-#if 0
-            QString url("mailto:");
-            url.append(ui->lineEditEmail->text());
-            url.append("?subject=File from Santa.&X-Mailer=SantaShip&body=Test message\n\nFrom Santa");
-            url.append("&attach=\"");
-            url.append(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
-            url.append("\"");
-            QDesktopServices::openUrl(QUrl(url));
-#endif //0
-        }
-    }
-#endif
 
     // If Reset is checked clear the settings
     if (ui->checkBoxReset->checkState() == Qt::Checked) {
@@ -702,10 +671,15 @@ void MainWindow::OnPrint(int index)
     QPrinter *printer = printerList.at(index);
     printer->setCopyCount(ui->spinBoxCopies->value());
 
-    if (fileSelection->hasSelection()) {
+    if (printer && fileSelection->hasSelection()) {
 //        qDebug() << __FILE__ << __FUNCTION__ << printer->printerName();
 
         // Do the printing here
+        if (graphicsScene->sceneRect().width() > graphicsScene->sceneRect().height()) {
+            printer->setOrientation(QPrinter::Landscape);
+        } else {
+            printer->setOrientation(QPrinter::Portrait);
+        }
 
         if (ui->checkBoxPreview->checkState() == Qt::Checked) {
             // Do a preview if checked
@@ -925,30 +899,30 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
 #if 1
     Q_UNUSED (checked);
     DialogCloudSetup cloudSetup;
-    cloudSetup.setS3Access(cloudSyncThread.S3Access);
-    cloudSetup.setS3Secret(cloudSyncThread.S3Secret);
-    cloudSetup.setS3Bucket(cloudSyncThread.S3Bucket);
-    cloudSetup.setEMailFrom(cloudSyncThread.emailFrom);
-    cloudSetup.setEMailDomain(cloudSyncThread.emailDomain);
-    cloudSetup.setEMailUser(cloudSyncThread.emailUser);
-    cloudSetup.setEMailPassword(cloudSyncThread.emailPassword);
-    cloudSetup.setEMailServer(cloudSyncThread.emailServer);
-    cloudSetup.setEMailPort(cloudSyncThread.emailPort);
-    cloudSetup.setEMailTransport(cloudSyncThread.emailTransport);
+    cloudSetup.setS3Access(cloudSync.S3Access);
+    cloudSetup.setS3Secret(cloudSync.S3Secret);
+    cloudSetup.setS3Bucket(cloudSync.S3Bucket);
+    cloudSetup.setEMailFrom(cloudSync.emailFrom);
+    cloudSetup.setEMailDomain(cloudSync.emailDomain);
+    cloudSetup.setEMailUser(cloudSync.emailUser);
+    cloudSetup.setEMailPassword(cloudSync.emailPassword);
+    cloudSetup.setEMailServer(cloudSync.emailServer);
+    cloudSetup.setEMailPort(cloudSync.emailPort);
+    cloudSetup.setEMailTransport(cloudSync.emailTransport);
 
     int result = cloudSetup.exec();
 
     if (result == QDialog::Accepted) {
-        cloudSyncThread.S3Access = cloudSetup.getS3Access();
-        cloudSyncThread.S3Secret = cloudSetup.getS3Secret();
-        cloudSyncThread.S3Bucket = cloudSetup.getS3Bucket();
-        cloudSyncThread.emailFrom = cloudSetup.getEMailFrom();
-        cloudSyncThread.emailDomain = cloudSetup.getEMailDomain();
-        cloudSyncThread.emailUser = cloudSetup.getEMailUser();
-        cloudSyncThread.emailPassword = cloudSetup.getEMailPassword();
-        cloudSyncThread.emailServer = cloudSetup.getEMailServer();
-        cloudSyncThread.emailPort = cloudSetup.getEMailPort();
-        cloudSyncThread.emailTransport = cloudSetup.getEMailTransport();
+        cloudSync.S3Access = cloudSetup.getS3Access();
+        cloudSync.S3Secret = cloudSetup.getS3Secret();
+        cloudSync.S3Bucket = cloudSetup.getS3Bucket();
+        cloudSync.emailFrom = cloudSetup.getEMailFrom();
+        cloudSync.emailDomain = cloudSetup.getEMailDomain();
+        cloudSync.emailUser = cloudSetup.getEMailUser();
+        cloudSync.emailPassword = cloudSetup.getEMailPassword();
+        cloudSync.emailServer = cloudSetup.getEMailServer();
+        cloudSync.emailPort = cloudSetup.getEMailPort();
+        cloudSync.emailTransport = cloudSetup.getEMailTransport();
     }
 #else
     Q_UNUSED (checked);
@@ -1096,17 +1070,17 @@ void MainWindow::writeSettings()
     settings->setValue("PreviewWindow/size", previewWindow->size());
     settings->setValue("PreviewWindow/pos", previewWindow->pos());
 
-    settings->setValue("S3Access", cloudSyncThread.S3Access);
-    settings->setValue("S3Secret", cloudSyncThread.S3Secret);
-    settings->setValue("S3Bucket", cloudSyncThread.S3Bucket);
+    settings->setValue("S3Access", cloudSync.S3Access);
+    settings->setValue("S3Secret", cloudSync.S3Secret);
+    settings->setValue("S3Bucket", cloudSync.S3Bucket);
 
-    settings->setValue("EMailUser", cloudSyncThread.emailUser);
-    settings->setValue("EMailFrom", cloudSyncThread.emailFrom);
-    settings->setValue("EMailDomain", cloudSyncThread.emailDomain);
-    settings->setValue("EMailPassword", cloudSyncThread.emailPassword);
-    settings->setValue("EMailServer", cloudSyncThread.emailServer);
-    settings->setValue("EMailPort", cloudSyncThread.emailPort);
-    settings->setValue("EMailTransport", cloudSyncThread.emailTransport);
+    settings->setValue("EMailUser", cloudSync.emailUser);
+    settings->setValue("EMailFrom", cloudSync.emailFrom);
+    settings->setValue("EMailDomain", cloudSync.emailDomain);
+    settings->setValue("EMailPassword", cloudSync.emailPassword);
+    settings->setValue("EMailServer", cloudSync.emailServer);
+    settings->setValue("EMailPort", cloudSync.emailPort);
+    settings->setValue("EMailTransport", cloudSync.emailTransport);
 
     settings->setValue("Overlay/index", ui->comboBoxOverlay->currentIndex());
     settings->setValue("Overlay/loc", ui->comboBoxOverlayLocation->currentIndex());
@@ -1198,8 +1172,8 @@ void MainWindow::readSettings()
     dirName = settings->value("CurrentDir", dirName).toString();
 //    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
-    cloudSyncThread.filesDirName = dirName + "/.AWS";
-    cloudSyncThread.emailDirName = dirName + "/.EMail";
+    cloudSync.filesDirName = dirName + "/.AWS";
+    cloudSync.emailDirName = dirName + "/.EMail";
 
     loadOverlays();
     ui->comboBoxOverlay->setCurrentIndex(settings->value("Overlay/index", 0).toInt());
@@ -1215,17 +1189,17 @@ void MainWindow::readSettings()
     ui->checkBoxPreview->setChecked(settings->value("PrintPreview", false).toBool());
 //    ui->splitter->setSizes(settings->value("Splits").);
 
-    cloudSyncThread.S3Access = settings->value("S3Access").toString();
-    cloudSyncThread.S3Secret = settings->value("S3Secret").toString();
-    cloudSyncThread.S3Bucket = settings->value("S3Bucket").toString();
+    cloudSync.S3Access = settings->value("S3Access").toString();
+    cloudSync.S3Secret = settings->value("S3Secret").toString();
+    cloudSync.S3Bucket = settings->value("S3Bucket").toString();
 
-    cloudSyncThread.emailUser = settings->value("EMailUser").toString();
-    cloudSyncThread.emailFrom = settings->value("EMailFrom").toString();
-    cloudSyncThread.emailDomain = settings->value("EMailDomain").toString();
-    cloudSyncThread.emailPassword = settings->value("EMailPassword").toString();
-    cloudSyncThread.emailServer = settings->value("EMailServer").toString();
-    cloudSyncThread.emailPort = settings->value("EMailPort").toInt();
-    cloudSyncThread.emailTransport = settings->value("EMailTransport").toString();
+    cloudSync.emailUser = settings->value("EMailUser").toString();
+    cloudSync.emailFrom = settings->value("EMailFrom").toString();
+    cloudSync.emailDomain = settings->value("EMailDomain").toString();
+    cloudSync.emailPassword = settings->value("EMailPassword").toString();
+    cloudSync.emailServer = settings->value("EMailServer").toString();
+    cloudSync.emailPort = settings->value("EMailPort").toInt();
+    cloudSync.emailTransport = settings->value("EMailTransport").toString();
 
     numItems = settings->value("NumSplits", 3).toInt();
     QList<int> sizeList;

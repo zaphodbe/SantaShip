@@ -4,12 +4,13 @@
 #include <QDebug>
 #include "qts3.h"
 
-cloudsync::cloudsync()
+cloudSyncThread::cloudSyncThread() :
+    QThread()
 {
 
 }
 
-void cloudsync::run()
+void cloudSyncThread::run()
 {
     QDir filesDir(filesDirName);
     QDir emailDir(emailDirName);
