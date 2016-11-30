@@ -974,12 +974,12 @@ void MainWindow::loadLayouts()
     layoutButton = newImageLayout(QString("1 Up L"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(0,0,11000,8500));
-
+#if 0
     layoutButton = newImageLayout(QString("2 Up L"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(0,0,5500,8500));
     layoutButton->addImage(QRectF(5500,0,5500,8500));
-
+#endif
     layoutButton = newImageLayout(QString("4 Up L"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(0,0,5500,4250));
@@ -990,7 +990,7 @@ void MainWindow::loadLayouts()
     layoutButton = newImageLayout(QString("One 8x10 L"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(500,250,10000,8000));
-
+#if 0
     layoutButton = newImageLayout(QString("4x6 P"));
     layoutButton->setRect(0,0,4000,6000);
     layoutButton->addImage(QRectF(0,0,4000,6000), QImageLayoutButton::CROP_IMAGE);
@@ -998,12 +998,12 @@ void MainWindow::loadLayouts()
     layoutButton = newImageLayout(QString("1 Up P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,11000));
-
+#endif
     layoutButton = newImageLayout(QString("2 Up P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,5500));
     layoutButton->addImage(QRectF(0,5500,8500,5500));
-
+#if 0
     layoutButton = newImageLayout(QString("4 Up P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,4250,5500));
@@ -1014,7 +1014,7 @@ void MainWindow::loadLayouts()
     layoutButton = newImageLayout(QString("One 8x10 P"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(250,500,8000,10000));
-
+#endif
     // Select the first layout as default
     OnLayout(imageLayoutList.first());
 }
