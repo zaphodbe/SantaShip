@@ -4,11 +4,8 @@
 #include <QThread>
 #include "SmtpClient-for-Qt/src/SmtpMime"
 
-class cloudSyncThread : public QThread
-{
-public:
-    cloudSyncThread();
-    void run();
+typedef struct cloudSyncData_s {
+    bool    working;
 
     QString filesDirName;
     QString emailDirName;
@@ -24,6 +21,17 @@ public:
     QString emailPassword;
     int     emailPort;
     QString emailTransport;
+} cloudSyncData_t;
+
+class cloudSyncThread : public QThread
+{
+public:
+    cloudSyncThread();
+    void run();
+
+    cloudSyncData_t     data;
 };
+
+void cloudSyncWork(cloudSyncData_t* data);
 
 #endif // CLOUDSYNC_H

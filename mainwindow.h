@@ -80,6 +80,7 @@ public slots:
     void OnEMail();
     void OnArchive();
     void OnThumbnailTimeout();
+    void OnCloudSyncTimeout();
     void OnCrop();
     void OnOverlay(QString text);
     void OnOverlay();
@@ -127,6 +128,7 @@ private:
     QString                      dirName;
     bool                         deselectInProcess;
     QTimer                      *thumbnailTimer;
+    QTimer                      *cloudSyncTimer;
     cloudSyncThread              cloudSync;
     QStringList                  overlayFiles;
     QPixmap                     *overlayPixmap;
