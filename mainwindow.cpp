@@ -139,6 +139,9 @@ MainWindow::MainWindow(QWidget *parent) :
 //    qDebug() << __FILE__ << __FUNCTION__ << "readSettings:" << timer1.restart();
     readSettings();
 
+    // Select the first layout as default
+    OnLayout(imageLayoutList.first());
+
     // Start the sync with the cloud
     //cloudSync.start();
     cloudSyncTimer = new QTimer();
@@ -500,6 +503,30 @@ void MainWindow::OnLayout(QWidget *widget)
 
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
     OnResize();
+
+    int index;
+    for (index = 0 ; index < printerList.size() ; index++) {
+        QPrinter *printer = printerList.at(index);
+        qDebug() << "printer" << printer->printerName();
+        qDebug() << "  paperSize" << printer->paperSize(QPrinter::Inch);
+        qDebug() << "  imageLayout.rect" << imageLayoutCurr->rect;
+
+        QSizeF paperSize = printer->paperSize(QPrinter::Inch);
+        if ((paperSize.width() * 1000 == imageLayoutCurr->rect.width() &&
+             paperSize.height() * 1000 == imageLayoutCurr->rect.height()) ||
+            (paperSize.width() * 1000 == imageLayoutCurr->rect.height() &&
+             paperSize.height() * 1000 == imageLayoutCurr->rect.width())) {
+
+            qDebug() << "  enabled";
+
+            printButtonList.at(index)->setEnabled(true);
+        } else {
+            qDebug() << "  disabled";
+
+            printButtonList.at(index)->setEnabled(false);
+        }
+    }
+
 }
 
 void MainWindow::AddPrinter(QPrinter *printer)
@@ -524,6 +551,9 @@ void MainWindow::AddPrinter(QPrinter *printer)
 
     signalMapperPrinterSettings->setMapping(actionPrinterSettings,printButtonList.length() - 1);
     connect(actionPrinterSettings, SIGNAL(triggered()), signalMapperPrinterSettings, SLOT(map()));
+
+    // Do an on layout so printer buttons are enabled accordingly
+    //OnLayout(imageLayoutCurr);
 }
 
 void MainWindow::OnPrinterRemove(int index)
@@ -778,17 +808,30 @@ void MainWindow::loadPreviewWindowContents(QString dir)
 
 void MainWindow::OnDefaults()
 {
+    // Set the layout back to default (first entry)
+    OnLayout(imageLayoutList.first());
+
+    // Set the overlay back to defaults
+    ui->comboBoxOverlay->setCurrentIndex(1);
+    ui->comboBoxOverlayLocation->setCurrentIndex(0);
+    ui->spinBoxOverlayScale->setValue(25);
+    ui->checkBoxOverlayMask->setChecked(true);
+    OnOverlay();
+
     // Set the E-Mail back
     ui->lineEditEmail->clear();
-
-    // Set the copies count back to 1
-    ui->spinBoxCopies->setValue(1);
 
     // Set Crop
     ui->checkBoxCrop->setChecked(true);
 
-    // Set the layout back to default (first entry)
-    OnLayout(imageLayoutList.first());
+    // Clear the preview option
+    ui->checkBoxPreview->setChecked(false);
+
+    // Set the reset on print
+    ui->checkBoxReset->setChecked(true);
+
+    // Set the copies count back to 1
+    ui->spinBoxCopies->setValue(1);
 
     // Clear the current selection
     fileSelection->clear();
@@ -941,13 +984,15 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
 /*
  * Private functions
  */
-QImageLayoutButton *MainWindow::newImageLayout(QString name)
+QImageLayoutButton *MainWindow::newImageLayout(QString name, int row)
 {
     QImageLayoutButton *layoutButton;
 
     layoutButton = new QImageLayoutButton(name);
     imageLayoutList.append(layoutButton);
-    ui->gridLayoutLayoutButtons->addWidget(layoutButton,0,imageLayoutList.length());
+    int col = 0;
+    while (ui->gridLayoutLayoutButtons->itemAtPosition(row,col)) col++;
+    ui->gridLayoutLayoutButtons->addWidget(layoutButton,row,col);
     signalMapperLayout->setMapping(layoutButton,layoutButton);
     connect(layoutButton, SIGNAL(clicked()), signalMapperLayout, SLOT(map()));
 
@@ -969,51 +1014,51 @@ void MainWindow::loadLayouts()
     // ToDo load these from discription files
     QImageLayoutButton *layoutButton;
 
-    layoutButton = newImageLayout(QString("4x6 L"));
+    layoutButton = newImageLayout(QString("1 4x6L on 4x6"));
     layoutButton->setRect(0,0,6000,4000);
     layoutButton->addImage(QRectF(0,0,6000,4000), QImageLayoutButton::CROP_IMAGE);
 
-    layoutButton = newImageLayout(QString("1 Up L"));
+    layoutButton = newImageLayout(QString("1 8.5x11L on 8.5x11"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(0,0,11000,8500));
 
-    layoutButton = newImageLayout(QString("2 Up L"));
+    layoutButton = newImageLayout(QString("2 5.5x8.5L on 8.5x11"));
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,5500));
     layoutButton->addImage(QRectF(0,5500,8500,5500));
 
-    layoutButton = newImageLayout(QString("4 Up L"));
+    layoutButton = newImageLayout(QString("4 4.25x5.5L on 8.5x11"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(0,0,5500,4250));
     layoutButton->addImage(QRectF(0,4250,5500,4250));
     layoutButton->addImage(QRectF(5500,0,5500,4250));
     layoutButton->addImage(QRectF(5500,4250,5500,4250));
 
-    layoutButton = newImageLayout(QString("One 8x10 L"));
+    layoutButton = newImageLayout(QString("1 8x10L on 8.5x11"));
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(500,250,10000,8000));
 #if 0
-    layoutButton = newImageLayout(QString("4x6 P"));
+    layoutButton = newImageLayout(QString("1 4x6 P on 4x6"),1);
     layoutButton->setRect(0,0,4000,6000);
     layoutButton->addImage(QRectF(0,0,4000,6000), QImageLayoutButton::CROP_IMAGE);
 
-    layoutButton = newImageLayout(QString("1 Up P"));
+    layoutButton = newImageLayout(QString("1 8.5x11 P on 8.5x11"),1);
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,8500,11000));
 
-    layoutButton = newImageLayout(QString("2 Up P"));
+    layoutButton = newImageLayout(QString("2 5.5x8.5 P on 8.5x11"),1);
     layoutButton->setRect(0,0,11000,8500);
     layoutButton->addImage(QRectF(0,0,5500,8500));
     layoutButton->addImage(QRectF(5500,0,5500,8500));
 
-    layoutButton = newImageLayout(QString("4 Up P"));
+    layoutButton = newImageLayout(QString("4 4.25x5.5 P on 8.5x11"),1);
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(0,0,4250,5500));
     layoutButton->addImage(QRectF(4250,0,4250,5500));
     layoutButton->addImage(QRectF(0,5500,4250,5500));
     layoutButton->addImage(QRectF(4250,5500,4250,5500));
 
-    layoutButton = newImageLayout(QString("One 8x10 P"));
+    layoutButton = newImageLayout(QString("1 8x10 P on 8.5x11"),1);
     layoutButton->setRect(0,0,8500,11000);
     layoutButton->addImage(QRectF(250,500,8000,10000));
 #endif

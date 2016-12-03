@@ -134,7 +134,7 @@ private:
     QPixmap                     *overlayPixmap;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
-    QImageLayoutButton          *newImageLayout(QString name);
+    QImageLayoutButton          *newImageLayout(QString name, int row = 0);
     void                         AddPrinter(QPrinter *printer);
     void                         loadPreviewWindowContents(QString dir);
 };
