@@ -13,6 +13,7 @@ typedef struct cloudSyncData_s {
     QString S3Access;
     QString S3Secret;
     QString S3Bucket;
+    QString S3URL;
 
     QString emailServer;
     QString emailUser;
@@ -21,6 +22,9 @@ typedef struct cloudSyncData_s {
     QString emailPassword;
     int     emailPort;
     QString emailTransport;
+    QString emailSubject;
+    QString emailPreamble;
+    QString emailPostamble;
 } cloudSyncData_t;
 
 class cloudSyncThread : public QThread
@@ -33,5 +37,7 @@ public:
 };
 
 void cloudSyncWork(cloudSyncData_t* data);
+int cloudSyncFilesWork(cloudSyncData_t* data, QStringList &files);
+int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails);
 
 #endif // CLOUDSYNC_H

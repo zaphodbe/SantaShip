@@ -25,7 +25,12 @@ void DialogCloudSetup::setS3Secret(QString value)
 
 void DialogCloudSetup::setS3Bucket(QString value)
 {
-    ui->lineEditS4Bucket->setText(value);
+    ui->lineEditS3Bucket->setText(value);
+}
+
+void DialogCloudSetup::setS3URL(QString value)
+{
+    ui->lineEditS3URL->setText(value);
 }
 
 void DialogCloudSetup::setEMailFrom(QString value)
@@ -63,6 +68,21 @@ void DialogCloudSetup::setEMailTransport(QString value)
     ui->comboBoxTransport->setCurrentText(value);
 }
 
+void DialogCloudSetup::setEMailSubject(QString value)
+{
+    ui->lineEditEMailSubject->setText(value);
+}
+
+void DialogCloudSetup::setEMailPreamble(QString value)
+{
+    ui->plainTextEditPreamble->setPlainText(value);
+}
+
+void DialogCloudSetup::setEMailPostamble(QString value)
+{
+    ui->plainTextEditPostamble->setPlainText(value);
+}
+
 QString DialogCloudSetup::getS3Access()
 {
     return ui->lineEditS3Access->text();
@@ -75,7 +95,12 @@ QString DialogCloudSetup::getS3Secret()
 
 QString DialogCloudSetup::getS3Bucket()
 {
-    return ui->lineEditS4Bucket->text();
+    return ui->lineEditS3Bucket->text();
+}
+
+QString DialogCloudSetup::getS3URL()
+{
+    return ui->lineEditS3URL->text();
 }
 
 QString DialogCloudSetup::getEMailFrom()
@@ -111,4 +136,19 @@ int DialogCloudSetup::getEMailPort()
 QString DialogCloudSetup::getEMailTransport()
 {
     return ui->comboBoxTransport->currentText();
+}
+
+QString DialogCloudSetup::getEMailSubject()
+{
+    return ui->lineEditEMailSubject->text();
+}
+
+QString DialogCloudSetup::getEMailPreamble()
+{
+    return ui->plainTextEditPreamble->toPlainText();
+}
+
+QString DialogCloudSetup::getEMailPostamble()
+{
+    return ui->plainTextEditPostamble->toPlainText();
 }

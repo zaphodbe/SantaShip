@@ -99,6 +99,7 @@ public slots:
     void writeSettings();
     void readSettings();
     void restartThumbnailTimer();
+    void setVersionLabel(int pics, int emails);
 
 private:
     Ui::MainWindow              *ui;

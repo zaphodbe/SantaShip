@@ -22,10 +22,6 @@
     #define DEFAULT_DIR "Pictures"
 #endif
 
-// Credentials for S3 access
-QByteArray awsKeyId = "AKIAIN572KU2X65CCJRA";
-QByteArray awsSecretKey = "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";
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -51,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // Put the build date time and version into the labelVersion
-    ui->labelVersion->setText(QString("SantaShip Ver 2.1 ") + QString(__DATE__) + QString(" ") + QString(__TIME__));
+    setVersionLabel(0,0);
 
     // Setup the right click actions that we will add to the buttons
     actionDeletePictures = new QAction(tr("Delete Selected"),this);
@@ -230,8 +226,16 @@ void MainWindow::OnThumbnailTimeout()
 
 void MainWindow::OnCloudSyncTimeout()
 {
+    QDir filesDir(cloudSync.data.filesDirName);
+    QDir emailDir(cloudSync.data.emailDirName);
+
+    // First process any pending images to send to the cloud
+    int fileCnt = filesDir.entryList(QDir::Files).size();
+    int emailCnt = emailDir.entryList(QDir::Files).size();
+    setVersionLabel(fileCnt,emailCnt);
+
     // Use the global thread pool
-    if (!cloudSync.data.working) {
+    if (!cloudSync.data.working && (fileCnt || emailCnt)) {
         cloudSync.data.working = true;
         QFuture<void> result = QtConcurrent::run(cloudSyncWork, &cloudSync.data);
     }
@@ -507,9 +511,9 @@ void MainWindow::OnLayout(QWidget *widget)
     int index;
     for (index = 0 ; index < printerList.size() ; index++) {
         QPrinter *printer = printerList.at(index);
-        qDebug() << "printer" << printer->printerName();
-        qDebug() << "  paperSize" << printer->paperSize(QPrinter::Inch);
-        qDebug() << "  imageLayout.rect" << imageLayoutCurr->rect;
+//        qDebug() << "printer" << printer->printerName();
+//        qDebug() << "  paperSize" << printer->paperSize(QPrinter::Inch);
+//        qDebug() << "  imageLayout.rect" << imageLayoutCurr->rect;
 
         QSizeF paperSize = printer->paperSize(QPrinter::Inch);
         if ((paperSize.width() * 1000 == imageLayoutCurr->rect.width() &&
@@ -707,6 +711,9 @@ void MainWindow::OnEMail()
     if (ui->checkBoxReset->checkState() == Qt::Checked) {
         OnDefaults();
     }
+
+    // Force a status update and if any pictures / email pending start a sync
+    OnCloudSyncTimeout();
 }
 
 void MainWindow::OnPrint(int index)
@@ -804,6 +811,23 @@ void MainWindow::loadPreviewWindowContents(QString dir)
         LoadImages(previewWindow->graphicsScene, indexList, previewWindow->imageLayoutCurr);
         previewWindow->OnResize();
     }
+}
+
+void MainWindow::setVersionLabel(int pics, int emails)
+{
+    QString version;
+
+    QTextStream(&version)
+        << "Sanata Ship Ver 3.0 " << __DATE__ << " " << __TIME__
+        << "      To sync Pictures " << pics << " & Emails " << emails;
+
+    // Load the version and build date / time
+    //version = QString("SantaShip Ver 3.0 ") + QString(__DATE__) + QString(" ") + QString(__TIME__);
+
+    // Add status from cloudsync
+    //version += QString("    CloudSync")
+
+    ui->labelVersion->setText(version);
 }
 
 void MainWindow::OnDefaults()
@@ -957,6 +981,7 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
     cloudSetup.setS3Access(cloudSync.data.S3Access);
     cloudSetup.setS3Secret(cloudSync.data.S3Secret);
     cloudSetup.setS3Bucket(cloudSync.data.S3Bucket);
+    cloudSetup.setS3URL(cloudSync.data.S3URL);
     cloudSetup.setEMailFrom(cloudSync.data.emailFrom);
     cloudSetup.setEMailDomain(cloudSync.data.emailDomain);
     cloudSetup.setEMailUser(cloudSync.data.emailUser);
@@ -964,6 +989,9 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
     cloudSetup.setEMailServer(cloudSync.data.emailServer);
     cloudSetup.setEMailPort(cloudSync.data.emailPort);
     cloudSetup.setEMailTransport(cloudSync.data.emailTransport);
+    cloudSetup.setEMailSubject(cloudSync.data.emailSubject);
+    cloudSetup.setEMailPreamble(cloudSync.data.emailPreamble);
+    cloudSetup.setEMailPostamble(cloudSync.data.emailPostamble);
 
     int result = cloudSetup.exec();
 
@@ -971,6 +999,7 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
         cloudSync.data.S3Access = cloudSetup.getS3Access();
         cloudSync.data.S3Secret = cloudSetup.getS3Secret();
         cloudSync.data.S3Bucket = cloudSetup.getS3Bucket();
+        cloudSync.data.S3URL = cloudSetup.getS3URL();
         cloudSync.data.emailFrom = cloudSetup.getEMailFrom();
         cloudSync.data.emailDomain = cloudSetup.getEMailDomain();
         cloudSync.data.emailUser = cloudSetup.getEMailUser();
@@ -978,6 +1007,9 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
         cloudSync.data.emailServer = cloudSetup.getEMailServer();
         cloudSync.data.emailPort = cloudSetup.getEMailPort();
         cloudSync.data.emailTransport = cloudSetup.getEMailTransport();
+        cloudSync.data.emailSubject = cloudSetup.getEMailSubject();
+        cloudSync.data.emailPreamble = cloudSetup.getEMailPreamble();
+        cloudSync.data.emailPostamble = cloudSetup.getEMailPostamble();
     }
 }
 
@@ -1015,8 +1047,8 @@ void MainWindow::loadLayouts()
     QImageLayoutButton *layoutButton;
 
     layoutButton = newImageLayout(QString("1 4x6L on 4x6"));
-    layoutButton->setRect(0,0,6000,4000);
-    layoutButton->addImage(QRectF(0,0,6000,4000), QImageLayoutButton::CROP_IMAGE);
+    layoutButton->setRect(0,0,5830,3940);
+    layoutButton->addImage(QRectF(0,0,5830,3940), QImageLayoutButton::CROP_IMAGE);
 
     layoutButton = newImageLayout(QString("1 8.5x11L on 8.5x11"));
     layoutButton->setRect(0,0,11000,8500);
@@ -1039,8 +1071,8 @@ void MainWindow::loadLayouts()
     layoutButton->addImage(QRectF(500,250,10000,8000));
 #if 0
     layoutButton = newImageLayout(QString("1 4x6 P on 4x6"),1);
-    layoutButton->setRect(0,0,4000,6000);
-    layoutButton->addImage(QRectF(0,0,4000,6000), QImageLayoutButton::CROP_IMAGE);
+    layoutButton->setRect(0,0,3940,5830);
+    layoutButton->addImage(QRectF(0,0,3940,5830), QImageLayoutButton::CROP_IMAGE);
 
     layoutButton = newImageLayout(QString("1 8.5x11 P on 8.5x11"),1);
     layoutButton->setRect(0,0,8500,11000);
@@ -1120,6 +1152,7 @@ void MainWindow::writeSettings()
     settings->setValue("S3Access", cloudSync.data.S3Access);
     settings->setValue("S3Secret", cloudSync.data.S3Secret);
     settings->setValue("S3Bucket", cloudSync.data.S3Bucket);
+    settings->setValue("S3URL", cloudSync.data.S3URL);
 
     settings->setValue("EMailUser", cloudSync.data.emailUser);
     settings->setValue("EMailFrom", cloudSync.data.emailFrom);
@@ -1128,6 +1161,9 @@ void MainWindow::writeSettings()
     settings->setValue("EMailServer", cloudSync.data.emailServer);
     settings->setValue("EMailPort", cloudSync.data.emailPort);
     settings->setValue("EMailTransport", cloudSync.data.emailTransport);
+    settings->setValue("EMailSubject", cloudSync.data.emailSubject);
+    settings->setValue("EMailPreamble", cloudSync.data.emailPreamble);
+    settings->setValue("EMailPostamble", cloudSync.data.emailPostamble);
 
     settings->setValue("Overlay/index", ui->comboBoxOverlay->currentIndex());
     settings->setValue("Overlay/loc", ui->comboBoxOverlayLocation->currentIndex());
@@ -1254,15 +1290,49 @@ void MainWindow::readSettings()
 
     cloudSync.data.S3Access = settings->value("S3Access").toString();
     cloudSync.data.S3Secret = settings->value("S3Secret").toString();
-    cloudSync.data.S3Bucket = settings->value("S3Bucket").toString();
+    cloudSync.data.S3Bucket = settings->value("S3Bucket", QString(
+        "magicship"
+    )).toString();
+    cloudSync.data.S3URL = settings->value("S3URL", QString(
+        "https://s3-us-west-1.amazonaws.com/"
+    )).toString();
 
-    cloudSync.data.emailUser = settings->value("EMailUser").toString();
-    cloudSync.data.emailFrom = settings->value("EMailFrom").toString();
-    cloudSync.data.emailDomain = settings->value("EMailDomain").toString();
+    cloudSync.data.emailUser = settings->value("EMailUser", QString(
+        "santa@magicshipofchristmas.org"
+    )).toString();
+    cloudSync.data.emailFrom = settings->value("EMailFrom", QString(
+        "Santa Claus"
+    )).toString();
+    cloudSync.data.emailDomain = settings->value("EMailDomain", QString(
+        "magicshipofchristmas.org"
+    )).toString();
     cloudSync.data.emailPassword = settings->value("EMailPassword").toString();
-    cloudSync.data.emailServer = settings->value("EMailServer").toString();
-    cloudSync.data.emailPort = settings->value("EMailPort").toInt();
-    cloudSync.data.emailTransport = settings->value("EMailTransport").toString();
+    cloudSync.data.emailServer = settings->value("EMailServer", QString(
+        "host128.hostmonster.com"
+    )).toString();
+    cloudSync.data.emailPort = settings->value("EMailPort",
+        465
+    ).toInt();
+    cloudSync.data.emailTransport = settings->value("EMailTransport", QString(
+        "SSL"
+    )).toString();
+    cloudSync.data.emailSubject = settings->value("EMailSubject", QString(
+        "Pictures with Santa on the Magic Ship"
+    )).toString();
+    cloudSync.data.emailPreamble = settings->value("EMailPreamble", QString(
+        "These are your pictures with Santa on the Magic Ship of Christmas.  They will be available for at least 30 days using the links below.\n"
+        "\n"
+    )).toString();
+    cloudSync.data.emailPostamble = settings->value("EMailPostamble", QString(
+        "\n"
+        "Thank you\n"
+        "Santa Claus\n"
+        "Troop / Crew 799\n"
+        "Morgan Hill\n"
+        "Voice: (408) 782-4031\n"
+        "Web: http://www.MagicShipofChristmas.org\n"
+        "Facebook: https://www.facebook.com/magicshipofchristmas/\n"
+    )).toString();
 
     numItems = settings->value("NumSplits", 3).toInt();
     QList<int> sizeList;
