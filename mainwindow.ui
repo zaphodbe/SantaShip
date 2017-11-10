@@ -30,6 +30,12 @@
        <layout class="QVBoxLayout" name="verticalLayout1">
         <item>
          <widget class="QListView" name="listView">
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::NoDragDrop</enum>
+          </property>
+          <property name="defaultDropAction">
+           <enum>Qt::IgnoreAction</enum>
+          </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::MultiSelection</enum>
           </property>

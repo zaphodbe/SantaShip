@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "thumbnail.h"
 #include "dialogcloudsetup.h"
+#include "emaildialog.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -94,9 +95,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Initialize the list view to display the file system model
 //    qDebug() << __FILE__ << __FUNCTION__ << "Setup List View:" << timer1.restart();
-    ui->listView->setAcceptDrops(false);
-    ui->listView->setDragEnabled(false);
-    ui->listView->setDragDropMode(QAbstractItemView::NoDragDrop);
+//    ui->listView->setAcceptDrops(false);
+//    ui->listView->setDragEnabled(false);
+//    ui->listView->setDragDropMode(QAbstractItemView::NoDragDrop);
     ui->listView->addAction(actionDeletePictures);
     ui->listView->addAction(actionArchivePictures);
     ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -521,11 +522,11 @@ void MainWindow::OnLayout(QWidget *widget)
             (paperSize.width() * 1000 == imageLayoutCurr->rect.height() &&
              paperSize.height() * 1000 == imageLayoutCurr->rect.width())) {
 
-            qDebug() << "  enabled";
+//            qDebug() << "  enabled";
 
             printButtonList.at(index)->setEnabled(true);
         } else {
-            qDebug() << "  disabled";
+//            qDebug() << "  disabled";
 
             printButtonList.at(index)->setEnabled(false);
         }
@@ -667,16 +668,32 @@ void MainWindow::OnArchive()
 
 void MainWindow::OnEMail()
 {
-    int imageIndex;
+    QString emailAddress = ui->lineEditEmail->text();
 
     // Get list of selected files
     QModelIndexList indexList = fileSelection->selectedIndexes();
+    QStringList fileNames;
+    for (int imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
+        fileNames.append(fileModel->rootPath() + "/" + fileModel->fileName(indexList.at(imageIndex)));
+    }
 
-    if (ui->lineEditEmail->text().size() &&
-            ui->lineEditEmail->text().contains("@") &&
+    // Use EMail Dialog box
+    EmailDialog emailDialog;
+    emailDialog.setEmailAddress(emailAddress);
+    emailDialog.setFileNames(fileNames);
+
+    int response = emailDialog.exec();
+
+    emailAddress = emailDialog.emailAddress();
+    fileNames = emailDialog.fileNames();
+
+    if (response == QDialog::Accepted &&
+            !emailAddress.isEmpty() &&
+            emailAddress.contains("@") &&
             fileSelection->hasSelection()) {
+
         // Only do E-Mail/Web if address entered and pictures are selected
-        qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << ui->lineEditEmail->text();
+        qDebug() << __FILE__ << __FUNCTION__ << "Send E-Mail to " << emailAddress;
 
         // Create a file containing the email address
         QString emailID = QUuid::createUuid().toString().mid(1);
@@ -690,8 +707,7 @@ void MainWindow::OnEMail()
         qDebug() << "emailID" << emailID;
 
         // Add the picture ID's and copy the pictures to the staging folder
-        for (imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
-            QString srcFileName = fileModel->fileName(indexList.at(imageIndex));
+        foreach(QString srcFileName, fileNames) {
             QFileInfo srcFileInfo(srcFileName);
             QString destFileName = QUuid::createUuid().toString().mid(1);
             destFileName.chop(1);
@@ -700,7 +716,7 @@ void MainWindow::OnEMail()
 
             qDebug() << "Copy file" << srcFileName << "to" << destFileName;
 
-            QFile::copy(fileModel->rootPath() + "/" + srcFileName, cloudSync.data.filesDirName + "/" + destFileName);
+            QFile::copy(srcFileName, cloudSync.data.filesDirName + "/" + destFileName);
             emailStream << destFileName << "\n";
         }
 
@@ -818,7 +834,7 @@ void MainWindow::setVersionLabel(int pics, int emails)
     QString version;
 
     QTextStream(&version)
-        << "Sanata Ship Ver 3.0 " << __DATE__ << " " << __TIME__
+        << "Santa Ship Ver 3.0 " << __DATE__ << " " << __TIME__
         << "      To sync Pictures " << pics << " & Emails " << emails;
 
     // Load the version and build date / time

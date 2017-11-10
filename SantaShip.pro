@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     previewwindow.cpp \
     thumbnail.cpp \
     cloudsync.cpp \
-    dialogcloudsetup.cpp
+    dialogcloudsetup.cpp \
+    emaildialog.cpp
 
 HEADERS  += mainwindow.h \
     filethumbnailprovider.h \
@@ -34,11 +35,13 @@ HEADERS  += mainwindow.h \
     previewwindow.h \
     thumbnail.h \
     cloudsync.h \
-    dialogcloudsetup.h
+    dialogcloudsetup.h \
+    emaildialog.h
 
 FORMS    += mainwindow.ui \
     previewwindow.ui \
-    dialogcloudsetup.ui
+    dialogcloudsetup.ui \
+    emaildialog.ui
 
 RESOURCES += \
     resources.qrc
