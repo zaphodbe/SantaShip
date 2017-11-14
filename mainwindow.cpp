@@ -702,7 +702,7 @@ void MainWindow::OnEMail()
         emailFile.open(QIODevice::Append);
         QTextStream emailStream (&emailFile);
 
-        emailStream << ui->lineEditEmail->text() << "\n";
+        emailStream << emailAddress << "\n";
 
         qDebug() << "emailID" << emailID;
 
@@ -1307,7 +1307,7 @@ void MainWindow::readSettings()
     cloudSync.data.S3Access = settings->value("S3Access").toString();
     cloudSync.data.S3Secret = settings->value("S3Secret").toString();
     cloudSync.data.S3Bucket = settings->value("S3Bucket", QString(
-        "magicship"
+        "magicshipphotos"
     )).toString();
     cloudSync.data.S3URL = settings->value("S3URL", QString(
         "https://s3-us-west-1.amazonaws.com/"
@@ -1324,7 +1324,7 @@ void MainWindow::readSettings()
     )).toString();
     cloudSync.data.emailPassword = settings->value("EMailPassword").toString();
     cloudSync.data.emailServer = settings->value("EMailServer", QString(
-        "host128.hostmonster.com"
+        "mail.magicshipofchristmas.org"
     )).toString();
     cloudSync.data.emailPort = settings->value("EMailPort",
         465

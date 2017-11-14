@@ -44,13 +44,13 @@ int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails)
         if (file.open(QIODevice::ReadOnly)) {
             // First we need to create an SmtpClient object
             // We will use the Gmail's smtp server (smtp.gmail.com, port 465, ssl)
-//                qDebug() << "emailServer" << data->emailServer;
-//                qDebug() << "emailPort" << data->emailPort;
-//                qDebug() << "emailUser" << data->emailUser;
-//                qDebug() << "emailFrom" << data->emailFrom;
-//                qDebug() << "emailDomain" << data->emailDomain;
-//                qDebug() << "emailPassword" << data->emailPassword;
-//                qDebug() << "emailTransport" << data->emailTransport;
+//            qDebug() << "emailServer" << data->emailServer;
+//            qDebug() << "emailPort" << data->emailPort;
+//            qDebug() << "emailUser" << data->emailUser;
+//            qDebug() << "emailFrom" << data->emailFrom;
+//            qDebug() << "emailDomain" << data->emailDomain;
+//            qDebug() << "emailPassword" << data->emailPassword;
+//            qDebug() << "emailTransport" << data->emailTransport;
 
             SmtpClient smtp(data->emailServer, data->emailPort, SmtpClient::TcpConnection);
             if (data->emailTransport == QString("SSL")) {
