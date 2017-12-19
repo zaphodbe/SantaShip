@@ -24,7 +24,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>30</pointsize>
+     <pointsize>26</pointsize>
     </font>
    </property>
    <property name="inputMask">
@@ -45,7 +45,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>30</pointsize>
+     <pointsize>26</pointsize>
     </font>
    </property>
    <property name="text">
@@ -65,7 +65,7 @@
     </rect>
    </property>
    <property name="dragDropMode">
-    <enum>QAbstractItemView::NoDragDrop</enum>
+    <enum>QAbstractItemView::DragDrop</enum>
    </property>
    <property name="selectionMode">
     <enum>QAbstractItemView::MultiSelection</enum>
