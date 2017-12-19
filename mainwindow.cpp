@@ -711,8 +711,9 @@ void MainWindow::OnEMail()
             QFileInfo srcFileInfo(srcFileName);
             QString destFileName = QUuid::createUuid().toString().mid(1);
             destFileName.chop(1);
-            destFileName.append(".");
-            destFileName.append(srcFileInfo.suffix());
+            destFileName.append(srcFileInfo.fileName());
+//            destFileName.append(".");
+//            destFileName.append(srcFileInfo.suffix());
 
             qDebug() << "Copy file" << srcFileName << "to" << destFileName;
 
