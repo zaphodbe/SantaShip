@@ -143,7 +143,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //cloudSync.start();
     cloudSyncTimer = new QTimer();
     connect(cloudSyncTimer, SIGNAL(timeout()), this, SLOT(OnCloudSyncTimeout()));
-    cloudSyncTimer->start(10000);
+    cloudSyncTimer->start(1*60*1000);
 
 }
 

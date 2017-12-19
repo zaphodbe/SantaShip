@@ -16,10 +16,10 @@ int cloudSyncFilesWork(cloudSyncData_t* data, QStringList &files)
         QFile srcFile(data->filesDirName + "/" + files.at(i));
         if (srcFile.open(QIODevice::ReadOnly)) {
             QByteArray fileData = srcFile.readAll();
+            srcFile.close();
             QtS3Reply<void> putReply = s3.put(data->S3Bucket.toLocal8Bit() ,files.at(i) ,fileData ,headers);
             if (putReply.isSuccess()) {
                 qDebug() << "Put successful deleting local copy";
-                srcFile.close();
                 srcFile.remove();
             } else {
                 qDebug() << "Put failed keep for next time through:" << putReply.anyErrorString();
@@ -108,19 +108,19 @@ int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails)
             if (!smtp.connectToHost()) {
                 qDebug() << "Failed to connect to host!" << endl;
                 failed ++;
-                continue;
+                goto abort;
             }
 
             if (!smtp.login()) {
                 qDebug() << "Failed to login!" << endl;
                 failed ++;
-                continue;
+                goto abort;
             }
 
             if (!smtp.sendMail(message)) {
                 qDebug() << "Failed to send mail!" << endl;
                 failed ++;
-                continue;
+                goto abort;
             }
 
             smtp.quit();
@@ -134,6 +134,7 @@ int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails)
         }
     }
 
+abort:
     return failed;
 }
 
