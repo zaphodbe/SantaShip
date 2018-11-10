@@ -2,7 +2,7 @@
 #define CLOUDSYNC_H
 
 #include <QThread>
-#include "SmtpClient-for-Qt/src/SmtpMime"
+#include "SmtpMime"
 
 typedef struct cloudSyncData_s {
     bool    working;
