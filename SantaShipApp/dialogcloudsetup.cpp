@@ -13,47 +13,47 @@ DialogCloudSetup::~DialogCloudSetup()
     delete ui;
 }
 
-void DialogCloudSetup::setS3Access(QString value)
+void DialogCloudSetup::setS3Access(const QString& value)
 {
     ui->lineEditS3Access->setText(value);
 }
 
-void DialogCloudSetup::setS3Secret(QString value)
+void DialogCloudSetup::setS3Secret(const QString& value)
 {
     ui->lineEditS3Secret->setText(value);
 }
 
-void DialogCloudSetup::setS3Bucket(QString value)
+void DialogCloudSetup::setS3Bucket(const QString& value)
 {
     ui->lineEditS3Bucket->setText(value);
 }
 
-void DialogCloudSetup::setS3URL(QString value)
+void DialogCloudSetup::setS3URL(const QString& value)
 {
     ui->lineEditS3URL->setText(value);
 }
 
-void DialogCloudSetup::setEMailFrom(QString value)
+void DialogCloudSetup::setEMailFrom(const QString& value)
 {
     ui->lineEditEMailFrom->setText(value);
 }
 
-void DialogCloudSetup::setEMailDomain(QString value)
+void DialogCloudSetup::setEMailDomain(const QString& value)
 {
     ui->lineEditEMailDomain->setText(value);
 }
 
-void DialogCloudSetup::setEMailUser(QString value)
+void DialogCloudSetup::setEMailUser(const QString& value)
 {
     ui->lineEditEMailUser->setText(value);
 }
 
-void DialogCloudSetup::setEMailPassword(QString value)
+void DialogCloudSetup::setEMailPassword(const QString& value)
 {
     ui->lineEditEMailPassword->setText(value);
 }
 
-void DialogCloudSetup::setEMailServer(QString value)
+void DialogCloudSetup::setEMailServer(const QString& value)
 {
     ui->lineEditEMailServer->setText(value);
 }
@@ -63,22 +63,22 @@ void DialogCloudSetup::setEMailPort(int value)
     ui->spinBoxEMailPort->setValue(value);
 }
 
-void DialogCloudSetup::setEMailTransport(QString value)
+void DialogCloudSetup::setEMailTransport(const QString& value)
 {
     ui->comboBoxTransport->setCurrentText(value);
 }
 
-void DialogCloudSetup::setEMailSubject(QString value)
+void DialogCloudSetup::setEMailSubject(const QString& value)
 {
     ui->lineEditEMailSubject->setText(value);
 }
 
-void DialogCloudSetup::setEMailPreamble(QString value)
+void DialogCloudSetup::setEMailPreamble(const QString& value)
 {
     ui->plainTextEditPreamble->setPlainText(value);
 }
 
-void DialogCloudSetup::setEMailPostamble(QString value)
+void DialogCloudSetup::setEMailPostamble(const QString& value)
 {
     ui->plainTextEditPostamble->setPlainText(value);
 }

@@ -159,14 +159,9 @@ void cloudSyncWork (cloudSyncData_t* data)
     data->working = false;
 }
 
-cloudSyncThread::cloudSyncThread() :
-    QThread()
-{
-}
-
 void cloudSyncThread::run()
 {
-    while(1) {
+    while(true) {
         cloudSyncWork(&data);
 
         sleep(30);

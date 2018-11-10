@@ -39,7 +39,7 @@ public:
     };
 
 private:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
 
 public:
     ~MainWindow();
@@ -75,14 +75,14 @@ public slots:
     void OnLayout(QWidget *widget);
     void OnDeletePictures();
     void OnResize();
-    void OnDirLoaded(QString dir);
+    void OnDirLoaded(const QString& dir);
     void OnDefaults();
     void OnEMail();
     void OnArchive();
     void OnThumbnailTimeout();
     void OnCloudSyncTimeout();
     void OnCrop();
-    void OnOverlay(QString text);
+    void OnOverlay(const QString& text);
     void OnOverlay();
 
     void genIconsStart();
@@ -114,12 +114,12 @@ private:
     QSignalMapper               *signalMapperPrinterSettings;
     QSignalMapper               *signalMapperPrinterRemove;
     QList<QImageLayoutButton*>   imageLayoutList;
-    QImageLayoutButton          *imageLayoutCurr;
+    QImageLayoutButton          *imageLayoutCurr{};
     QSettings                   *settings;
     QAction                     *actionDeletePictures;
     QAction                     *actionArchivePictures;
-    QAction                     *actionPrinterSettings;
-    QAction                     *actionPrinterRemove;
+    QAction                     *actionPrinterSettings{};
+    QAction                     *actionPrinterRemove{};
     bool                         changeEnable;
     bool                         loadImagesDisabled;
     PreviewWindow               *previewWindow;
@@ -132,12 +132,12 @@ private:
     QTimer                      *cloudSyncTimer;
     cloudSyncThread              cloudSync;
     QStringList                  overlayFiles;
-    QPixmap                     *overlayPixmap;
+    QPixmap                     *overlayPixmap{};
 
-    void                         LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr);
-    QImageLayoutButton          *newImageLayout(QString name, int row = 0);
+    void                         LoadImages(QGraphicsScene* graphicsScene, const QModelIndexList& indexList, QImageLayoutButton* imageLayoutCurr);
+    QImageLayoutButton          *newImageLayout(const QString& name, int row = 0);
     void                         AddPrinter(QPrinter *printer);
-    void                         loadPreviewWindowContents(QString dir);
+    void                         loadPreviewWindowContents(const QString &dir);
 };
 
 #endif // MAINWINDOW_H

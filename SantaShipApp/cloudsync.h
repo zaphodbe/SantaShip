@@ -30,7 +30,7 @@ typedef struct cloudSyncData_s {
 class cloudSyncThread : public QThread
 {
 public:
-    cloudSyncThread();
+    cloudSyncThread() = default;
     void run();
 
     cloudSyncData_t     data;

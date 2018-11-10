@@ -26,9 +26,9 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    fileModel(NULL),
-    fileSelection(NULL),
-    fileThumbnail(NULL),
+    fileModel(nullptr),
+    fileSelection(nullptr),
+    fileThumbnail(nullptr),
     changeEnable(false),
     loadImagesDisabled(false),
     previewWindow(new PreviewWindow(this)),
@@ -248,7 +248,7 @@ void MainWindow::OnCrop()
     OnResize();
 }
 
-void MainWindow::OnOverlay(QString text)
+void MainWindow::OnOverlay(const QString& text)
 {
     Q_UNUSED(text);
     OnOverlay();
@@ -266,7 +266,7 @@ void MainWindow::OnOverlay()
     } else {
         if (overlayPixmap) {
             delete overlayPixmap;
-            overlayPixmap = NULL;
+            overlayPixmap = nullptr;
         }
     }
 
@@ -313,11 +313,10 @@ void MainWindow::OnDeletePictures()
     OnResize();
 }
 
-void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList indexList, QImageLayoutButton* imageLayoutCurr)
+void MainWindow::LoadImages(QGraphicsScene* graphicsScene, const QModelIndexList& indexList, QImageLayoutButton* imageLayoutCurr)
 {
     int     imageIndex,layoutIndex,firstImageIndex,imageFlags;
     bool    imageLandscape,layoutLandscape;
-    double  imageAspect,layoutAspect;
 
 //    qDebug() << __FILE__ << __FUNCTION__ << this->imageLayoutCurr->text();
 
@@ -346,31 +345,17 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
         // Get the layout rectangle and flags of where we want the image
         QRectF layoutRect = imageLayoutCurr->getImageRect(layoutIndex);
         imageFlags = imageLayoutCurr->getImageFlags(layoutIndex);
-        layoutAspect = layoutRect.width() / layoutRect.height();
 
         // Figure out layout position orientation
-        if (layoutAspect >= 1.0) {
-            // Image Layout position is landscape
-            layoutLandscape = true;
-        } else {
-            // Image Layout position is portrait
-            layoutLandscape = false;
-        }
+        // assumption: landscape when width >= height (aspect ratio >= 1)
+        layoutLandscape = (layoutRect.width() >= layoutRect.height());
 
         // Load the image into a pixmap
         QPixmap pixmap(fileModel->fileInfo(indexList.at(imageIndex)).absoluteFilePath());
         if (pixmap.isNull()) continue;
 
-        imageAspect = pixmap.width() / pixmap.height();
-
         // Figure out image orientation
-        if (imageAspect >= 1.0) {
-            // Image is landscape
-            imageLandscape = true;
-        } else {
-            // Image is portrait
-            imageLandscape = false;
-        }
+        imageLandscape = (pixmap.width() >= pixmap.height());
 
         // Local variables
         qreal x,y;
@@ -393,8 +378,8 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
 
         x  = layoutRect.left();
         y  = layoutRect.top();
-        r1 = (qreal) layoutRect.width()/(qreal) pixmap.width();
-        r2 = (qreal) layoutRect.height()/(qreal) pixmap.height();
+        r1 = qreal(layoutRect.width()) / qreal(pixmap.width());
+        r2 = qreal(layoutRect.height()) / qreal(pixmap.height());
 
         if ((imageFlags & QImageLayoutButton::CROP_IMAGE) || ui->checkBoxCrop->isChecked()) {
             if (r1 < r2) {
@@ -416,7 +401,7 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
         y += (layoutRect.height() - pixmap.height() * r1) / 2.0;
 
         // Put the pixmap on the display
-        QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap.copy(newX1, newY1, newX2, newY2));
+        QGraphicsPixmapItem *item = graphicsScene->addPixmap(pixmap.copy(int(newX1), int(newY1), int(newX2), int(newY2)));
         item->setScale(r1);
         item->setPos(x,y);
 
@@ -426,8 +411,8 @@ void MainWindow::LoadImages(QGraphicsScene* graphicsScene, QModelIndexList index
         // Add any specified overlay
         if (overlayPixmap) {
             qreal overlayScale = ui->spinBoxOverlayScale->value() / 100.0;
-            r1 = (qreal) layoutRect.width()/(qreal) overlayPixmap->width()*overlayScale;
-            r2 = (qreal) layoutRect.height()/(qreal) overlayPixmap->height()*overlayScale;
+            r1 = qreal(layoutRect.width()) / qreal(overlayPixmap->width()) * overlayScale;
+            r2 = qreal(layoutRect.height()) / qreal(overlayPixmap->height()) * overlayScale;
             if (r1 > r2)
                 r1 = r2;
 
@@ -494,44 +479,33 @@ void MainWindow::OnSelectionChanged(QItemSelection selected,QItemSelection desel
 
 void MainWindow::OnLayout(QWidget *widget)
 {
-    QImageLayoutButton *imageLayout;
-
     // Set the current layout
-    imageLayoutCurr = (QImageLayoutButton*) widget;
+    imageLayoutCurr = qobject_cast<QImageLayoutButton*>(widget);
 
     // enable all layouts except the selected one
-    int i;
-    for (i = 0; i < imageLayoutList.length(); i++) {
-        imageLayout = imageLayoutList.at(i);
-        imageLayout->setEnabled(imageLayout != imageLayoutCurr);
+    // TODO: We should disable layout options that are not supported by configured printers instead
+    for (auto button : imageLayoutList) {
+        button->setEnabled(button != imageLayoutCurr);
     }
 
     LoadImages(graphicsScene, fileSelection->selectedIndexes(), imageLayoutCurr);
     OnResize();
 
-    int index;
-    for (index = 0 ; index < printerList.size() ; index++) {
-        QPrinter *printer = printerList.at(index);
+    for (const auto &printer : printerList) {
+        QPageLayout layout = printer->pageLayout();
+
 //        qDebug() << "printer" << printer->printerName();
 //        qDebug() << "  paperSize" << printer->paperSize(QPrinter::Inch);
 //        qDebug() << "  imageLayout.rect" << imageLayoutCurr->rect;
 
-        QSizeF paperSize = printer->paperSize(QPrinter::Inch);
-        if ((paperSize.width() * 1000 == imageLayoutCurr->rect.width() &&
-             paperSize.height() * 1000 == imageLayoutCurr->rect.height()) ||
-            (paperSize.width() * 1000 == imageLayoutCurr->rect.height() &&
-             paperSize.height() * 1000 == imageLayoutCurr->rect.width())) {
-
-//            qDebug() << "  enabled";
-
-            printButtonList.at(index)->setEnabled(true);
-        } else {
-//            qDebug() << "  disabled";
-
-            printButtonList.at(index)->setEnabled(false);
-        }
+        // QPageSize is always portrait, does not consider margins
+        // Setting page size check policy to FuzzyOrientationMatch allows matching either orientation
+        QPageSize imageSize(QSizeF(imageLayoutCurr->rect.width() / 1000.0, imageLayoutCurr->rect.height() / 1000.0),
+                            QPageSize::Unit::Inch, QStringLiteral("imageSize"), QPageSize::SizeMatchPolicy::FuzzyOrientationMatch);
+        bool sizeMatch = imageSize.isEquivalentTo(layout.pageSize());
+        printButtonList.at(printerList.indexOf(printer))->setEnabled(sizeMatch);
+//        qDebug() << (sizeMatch ? "  enabled" : "  disabled");
     }
-
 }
 
 void MainWindow::AddPrinter(QPrinter *printer)
@@ -584,14 +558,14 @@ void MainWindow::OnPrinterRemove(int index)
 //    delete button;
 
     // Just replace the entry in the list with NULL so other printer indexes are still correct
-    printButtonList.replace(index, NULL);
+    printButtonList.replace(index, nullptr);
 
     // Also cleanup the printer object
     QPrinter *printer = printerList.at(index);
     delete printer;
 
     // Just replace the entry in the list with NULL so other printer indexes are still correct
-    printerList.replace(index, NULL);
+    printerList.replace(index, nullptr);
 }
 
 void MainWindow::OnPrinterSettings(int index)
@@ -673,8 +647,8 @@ void MainWindow::OnEMail()
     // Get list of selected files
     QModelIndexList indexList = fileSelection->selectedIndexes();
     QStringList fileNames;
-    for (int imageIndex = 0; imageIndex < indexList.length(); imageIndex++) {
-        fileNames.append(fileModel->rootPath() + "/" + fileModel->fileName(indexList.at(imageIndex)));
+    for (const auto & imageIndex : indexList) {
+        fileNames.append(fileModel->rootPath() + "/" + fileModel->fileName(imageIndex));
     }
 
     // Use EMail Dialog box
@@ -780,7 +754,7 @@ void MainWindow::paintRequested(QPrinter *printer)
     graphicsScene->render(&painter);
 }
 
-void MainWindow::OnDirLoaded(QString dir)
+void MainWindow::OnDirLoaded(const QString& dir)
 {
 //    qDebug() << __FILE__ << __FUNCTION__ << dir << dirName << timer1.restart();
 
@@ -807,7 +781,7 @@ void MainWindow::OnDirLoaded(QString dir)
 //    qDebug() << __FILE__ << __FUNCTION__ << "Preview Loaded" << timer1.restart();
 }
 
-void MainWindow::loadPreviewWindowContents(QString dir)
+void MainWindow::loadPreviewWindowContents(const QString& dir)
 {
 //    qDebug() << __FILE__ << __FUNCTION__ << dir;
     if (previewWindow && previewWindow->isVisible()) {
@@ -937,7 +911,7 @@ void MainWindow::on_actionSave_Settings_triggered(bool checked)
 void MainWindow::on_actionChange_Enable_triggered(bool checked)
 {
     Q_UNUSED (checked);
-    QAction *actClicked = (QAction*) this->sender();
+    QAction *actClicked = qobject_cast<QAction*>(this->sender());
 //    qDebug() << __FILE__ << __FUNCTION__ << "Change Enabled" << checked;
 
     if (adminMode)
@@ -1033,7 +1007,7 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
 /*
  * Private functions
  */
-QImageLayoutButton *MainWindow::newImageLayout(QString name, int row)
+QImageLayoutButton *MainWindow::newImageLayout(const QString& name, int row)
 {
     QImageLayoutButton *layoutButton;
 
@@ -1060,7 +1034,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
 void MainWindow::loadLayouts()
 {
-    // ToDo load these from discription files
+    // ToDo load these from description files
     QImageLayoutButton *layoutButton;
 
     layoutButton = newImageLayout(QString("1 4x6L on 4x6"));
@@ -1134,7 +1108,7 @@ void MainWindow::loadOverlays()
 
     // Add the possible overlays to the list and select the first as default
     overlayFiles = overlayDir.entryList(QDir::Files);
-    if (overlayFiles.size()) {
+    if (!overlayFiles.empty()) {
         ui->comboBoxOverlay->addItems(overlayFiles);
 //        ui->comboBoxOverlay->setCurrentIndex(1);
         OnOverlay();
@@ -1368,22 +1342,22 @@ void MainWindow::readSettings()
 //        qDebug() << __FILE__ << __FUNCTION__ << "Loading" << settingBase;
 
         settings->beginGroup(settingBase);
-        printer->setOutputFormat((QPrinter::OutputFormat) settings->value("OutputFormat").toInt());
+        printer->setOutputFormat(QPrinter::OutputFormat(settings->value("OutputFormat").toInt()));
         printer->setPrinterName(settings->value("Name").toString());
         printer->setDocName(settings->value("DocName").toString());
         printer->setCreator(settings->value("Creator").toString());
-        printer->setOrientation((QPrinter::Orientation) settings->value("Orientation").toInt());
-        printer->setPageSize((QPrinter::PageSize) settings->value("PageSize").toInt());
-        printer->setPaperSize((QPrinter::PaperSize) settings->value("PaperSize").toInt());
-        printer->setPageOrder((QPrinter::PageOrder) settings->value("PageOrder").toInt());
+        printer->setOrientation(QPrinter::Orientation(settings->value("Orientation").toInt()));
+        printer->setPageSize(QPrinter::PageSize(settings->value("PageSize").toInt()));
+        printer->setPaperSize(QPrinter::PaperSize(settings->value("PaperSize").toInt()));
+        printer->setPageOrder(QPrinter::PageOrder(settings->value("PageOrder").toInt()));
         printer->setResolution(settings->value("Resolution").toInt());
-        printer->setColorMode((QPrinter::ColorMode) settings->value("ColorMode").toInt());
+        printer->setColorMode(QPrinter::ColorMode(settings->value("ColorMode").toInt()));
         printer->setCollateCopies(settings->value("CollateCopies").toBool());
         printer->setFullPage(settings->value("FullPage").toBool());
         printer->setNumCopies(settings->value("NumCopies").toInt());
 //        printer->setCopyCount(settings->value("CopyCount").toInt());
-        printer->setPaperSource((QPrinter::PaperSource) settings->value("PaperSource").toInt());
-        printer->setDuplex((QPrinter::DuplexMode) settings->value("Duplex").toInt());
+        printer->setPaperSource(QPrinter::PaperSource(settings->value("PaperSource").toInt()));
+        printer->setDuplex(QPrinter::DuplexMode(settings->value("Duplex").toInt()));
         settings->endGroup();
 
         AddPrinter(printer);

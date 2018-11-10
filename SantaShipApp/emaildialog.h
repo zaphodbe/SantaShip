@@ -13,10 +13,10 @@ class EmailDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit EmailDialog(QWidget *parent = 0);
+    explicit EmailDialog(QWidget *parent = nullptr);
     ~EmailDialog();
 
-    void setEmailAddress(QString emailAddress);
+    void setEmailAddress(const QString& emailAddress);
     QString emailAddress();
 
     void setFileNames(QStringList indexList);

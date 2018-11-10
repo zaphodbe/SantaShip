@@ -15,20 +15,20 @@ public:
     explicit DialogCloudSetup(QWidget *parent = 0);
     ~DialogCloudSetup();
 
-    void setS3Access(QString value);
-    void setS3Secret(QString value);
-    void setS3Bucket(QString value);
-    void setS3URL(QString value);
-    void setEMailFrom(QString value);
-    void setEMailDomain(QString value);
-    void setEMailUser(QString value);
-    void setEMailPassword(QString value);
-    void setEMailServer(QString value);
+    void setS3Access(const QString& value);
+    void setS3Secret(const QString& value);
+    void setS3Bucket(const QString& value);
+    void setS3URL(const QString& value);
+    void setEMailFrom(const QString& value);
+    void setEMailDomain(const QString& value);
+    void setEMailUser(const QString& value);
+    void setEMailPassword(const QString& value);
+    void setEMailServer(const QString& value);
     void setEMailPort(int value);
-    void setEMailTransport(QString value);
-    void setEMailSubject(QString value);
-    void setEMailPreamble(QString value);
-    void setEMailPostamble(QString value);
+    void setEMailTransport(const QString& value);
+    void setEMailSubject(const QString& value);
+    void setEMailPreamble(const QString& value);
+    void setEMailPostamble(const QString& value);
 
     QString getS3Access(void);
     QString getS3Secret(void);
