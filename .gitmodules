@@ -2,5 +2,5 @@
 	path = qts3
 	url = https://github.com/msorvig/qts3.git
 [submodule "SmtpClient-for-Qt"]
-	path = SmtpClient-for-Qt
+	path = SMTPEmail
 	url = https://github.com/bluetiger9/SmtpClient-for-Qt.git

@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QFileInfo>
+#include <utility>
 
 EmailDialog::EmailDialog(QWidget *parent) :
     QDialog(parent),
@@ -16,7 +17,7 @@ EmailDialog::~EmailDialog()
     delete ui;
 }
 
-void EmailDialog::setEmailAddress(QString emailAddress)
+void EmailDialog::setEmailAddress(const QString& emailAddress)
 {
     ui->lineEditEmailAddress->setText(emailAddress);
 }
@@ -28,7 +29,7 @@ QString EmailDialog::emailAddress()
 
 void EmailDialog::setFileNames(QStringList fileNames)
 {
-    _fileNames = fileNames;
+    _fileNames = std::move(fileNames);
 }
 
 QStringList EmailDialog::fileNames()

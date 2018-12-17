@@ -11,7 +11,7 @@
 #define USE_SCALED_ICON_WIDTH 250
 #endif
 
-bool createThumbnail (QString pictureFileName, QString thumbnailFileName, QStringList *processList)
+bool createThumbnail (const QString& pictureFileName, const QString& thumbnailFileName, QStringList *processList)
 {
     QImage image;
 

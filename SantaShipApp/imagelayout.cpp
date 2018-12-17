@@ -2,21 +2,21 @@
 
 QImageLayoutButton::QImageLayoutButton(QWidget *parent) :
         QPushButton(parent),
-        imageList(0)
+        imageList(nullptr)
 {
     initLayout();
 }
 
 QImageLayoutButton::QImageLayoutButton(const QString &text, QWidget *parent) :
         QPushButton(text, parent),
-        imageList(0)
+        imageList(nullptr)
 {
     initLayout();
 }
 
 QImageLayoutButton::QImageLayoutButton(const QIcon &icon, const QString &text, QWidget *parent) :
         QPushButton(icon, text, parent),
-        imageList(0)
+        imageList(nullptr)
 {
     initLayout();
 }

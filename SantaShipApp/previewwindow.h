@@ -16,7 +16,7 @@ class PreviewWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit PreviewWindow(QWidget *parent = 0);
+    explicit PreviewWindow(QWidget *parent = nullptr);
     ~PreviewWindow();
 
 protected:
@@ -31,7 +31,7 @@ public:
     QList<QImageLayoutButton*>   imageLayoutList;
     QImageLayoutButton          *imageLayoutCurr;
 
-    QImageLayoutButton          *newImageLayout(QString name);
+    QImageLayoutButton          *newImageLayout(const QString& name);
 };
 
 #endif // PREVIEWWINDOW_H

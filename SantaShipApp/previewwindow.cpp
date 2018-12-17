@@ -37,7 +37,7 @@ PreviewWindow::~PreviewWindow()
 /*
  * Private functions
  */
-QImageLayoutButton *PreviewWindow::newImageLayout(QString name)
+QImageLayoutButton *PreviewWindow::newImageLayout(const QString& name)
 {
     QImageLayoutButton *layoutButton;
 
