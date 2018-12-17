@@ -1,12 +1,37 @@
-#ifndef CLOUDSYNC_H
-#define CLOUDSYNC_H
+#pragma once
 
 #include <QThread>
-#include "SmtpMime"
+#include <QString>
+#include <QFile>
+#include <atomic>
 
-typedef struct cloudSyncData_s {
-    bool    working;
+class CloudSync : public QThread {
+public:
+    Q_OBJECT
 
+    Q_PROPERTY(int emailCount READ emailCount WRITE setEmailCount NOTIFY emailCountChanged)
+    Q_PROPERTY(int pictureSyncCount READ pictureSyncCount WRITE setPictureSyncCount NOTIFY pictureSyncCountChanged)
+
+signals:
+    void emailCountChanged(int);
+    void pictureSyncCountChanged(int);
+
+public:
+    explicit CloudSync();
+    ~CloudSync() override = default;
+
+    void run() override;
+
+    void work();
+
+    int emailCount();
+    void setEmailCount(int count);
+
+    int pictureSyncCount();
+    void setPictureSyncCount(int count);
+
+// FIXME: these should be in accessors, or better yet, properties so we can have bindings
+public:
     QString filesDirName;
     QString emailDirName;
 
@@ -25,19 +50,13 @@ typedef struct cloudSyncData_s {
     QString emailSubject;
     QString emailPreamble;
     QString emailPostamble;
-} cloudSyncData_t;
 
-class cloudSyncThread : public QThread
-{
-public:
-    cloudSyncThread() = default;
-    void run();
+private:
+    std::atomic_flag working;
+    int m_emailCount;
+    int m_pictureSyncCount;
 
-    cloudSyncData_t     data;
+    int syncFiles(const QStringList& files);
+    int syncEmails(const QStringList& emails);
+    void archiveEMLFile(const QFile& file);
 };
-
-void cloudSyncWork(cloudSyncData_t* data);
-int cloudSyncFilesWork(cloudSyncData_t* data, QStringList &files);
-int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails);
-
-#endif // CLOUDSYNC_H

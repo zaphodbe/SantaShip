@@ -16,6 +16,9 @@
 #include <QSignalMapper>
 #include <QSettings>
 
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+
 #include "filethumbnailprovider.h"
 #include "imagelayout.h"
 #include "previewwindow.h"
@@ -56,6 +59,11 @@ public:
         return instance;
     }
 
+
+    Q_PROPERTY(QString dirName MEMBER dirName WRITE setDirName NOTIFY dirNameChanged)
+
+    void setDirName(const QString& dir);
+
 protected:
     void resizeEvent(QResizeEvent *event);
 
@@ -63,12 +71,13 @@ protected:
     void loadOverlays();
 
 signals:
+    void dirNameChanged(const QString& dir);
 
 public slots:
     void OnDir();
     void OnSmaller();
     void OnBigger();
-    void OnSelectionChanged(QItemSelection selected,QItemSelection deselected);
+    void OnSelectionChanged(QItemSelection selected, QItemSelection deselected);
     void OnPrinterRemove(int index);
     void OnPrinterSettings(int index);
     void OnPrint(int index);
@@ -99,7 +108,7 @@ public slots:
     void writeSettings();
     void readSettings();
     void restartThumbnailTimer();
-    void setVersionLabel(int pics, int emails);
+    void updateVersionLabel();
 
 private:
     Ui::MainWindow              *ui;
@@ -130,9 +139,12 @@ private:
     bool                         deselectInProcess;
     QTimer                      *thumbnailTimer;
     QTimer                      *cloudSyncTimer;
-    cloudSyncThread              cloudSync;
+    CloudSync                    cloudSync;
     QStringList                  overlayFiles;
     QPixmap                     *overlayPixmap{};
+
+    int                          m_emailCount;
+    int                          m_pictureSyncCount;
 
     void                         LoadImages(QGraphicsScene* graphicsScene, const QModelIndexList& indexList, QImageLayoutButton* imageLayoutCurr);
     QImageLayoutButton          *newImageLayout(const QString& name, int row = 0);

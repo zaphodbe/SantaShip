@@ -3,6 +3,7 @@
 #include "thumbnail.h"
 #include "dialogcloudsetup.h"
 #include "emaildialog.h"
+#include "SantaLogger.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -17,6 +18,10 @@
 #include <QBitmap>
 
 #include <qts3.h>
+
+#include <exception>
+#include <typeinfo>
+#include <stdexcept>
 
 #ifndef DEFAULT_DIR
     // Expected to be a subdirectory under the home directory
@@ -44,11 +49,18 @@ MainWindow::MainWindow(QWidget *parent) :
     settings = new QSettings(QString("SantaShip"),QString("SantaShip"));
 //    qDebug() << __FILE__ << __FUNCTION__ << settings->fileName();
 
+    // Redirect logging as soon as we know where to put it
+    QString rootDir = settings->value("CurrentDir", QDir::homePath() + "/" + DEFAULT_DIR).toString();
+    SantaLogger& logger = SantaLogger::instance();
+    logger.setRootDirectory(rootDir); // ok if empty
+    // bind our dirName property to logger.rootDirectory
+    QObject::connect(this, &MainWindow::dirNameChanged, &logger, &SantaLogger::setRootDirectory);
+
     // Start the ui engine
     ui->setupUi(this);
 
     // Put the build date time and version into the labelVersion
-    setVersionLabel(0,0);
+    updateVersionLabel();
 
     // Setup the right click actions that we will add to the buttons
     actionDeletePictures = new QAction(tr("Delete Selected"),this);
@@ -139,12 +151,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // Select the first layout as default
     OnLayout(imageLayoutList.first());
 
+    // version label bindings
+    connect(&cloudSync, SIGNAL(emailCountChanged(int)), this, SLOT(updateVersionLabel()));
+    connect(&cloudSync, SIGNAL(pictureSyncCountChanged(int)), this, SLOT(updateVersionLabel()));
+
     // Start the sync with the cloud
-    //cloudSync.start();
+//    cloudSync.start();
     cloudSyncTimer = new QTimer();
     connect(cloudSyncTimer, SIGNAL(timeout()), this, SLOT(OnCloudSyncTimeout()));
     cloudSyncTimer->start(1*60*1000);
-
 }
 
 MainWindow::~MainWindow()
@@ -162,16 +177,23 @@ MainWindow::~MainWindow()
     delete settings;
 }
 
+void MainWindow::setDirName(const QString& dir)
+{
+    dirName = dir;
+    emit dirNameChanged(dirName);
+}
+
 /*
  * Normal Event driven slots.
  */
 
 void MainWindow::OnDir()
 {
-    QString directory = QFileDialog::getExistingDirectory(this,tr("Open Directory"),fileModel->rootPath());
+    QString directory = QFileDialog::getExistingDirectory(this, tr("Open Directory"), fileModel->rootPath());
 
 //    qDebug() << __FILE__ << __FUNCTION__ << directory;
     fileModel->setRootPath(directory);
+    setDirName(directory);
     OnOverlay();
 }
 
@@ -227,19 +249,10 @@ void MainWindow::OnThumbnailTimeout()
 
 void MainWindow::OnCloudSyncTimeout()
 {
-    QDir filesDir(cloudSync.data.filesDirName);
-    QDir emailDir(cloudSync.data.emailDirName);
-
-    // First process any pending images to send to the cloud
-    int fileCnt = filesDir.entryList(QDir::Files).size();
-    int emailCnt = emailDir.entryList(QDir::Files).size();
-    setVersionLabel(fileCnt,emailCnt);
+    qDebug() << "Cloud sync timer";
 
     // Use the global thread pool
-    if (!cloudSync.data.working && (fileCnt || emailCnt)) {
-        cloudSync.data.working = true;
-        QFuture<void> result = QtConcurrent::run(cloudSyncWork, &cloudSync.data);
-    }
+    QFuture<void> result = QtConcurrent::run(&cloudSync, &CloudSync::work);
 }
 
 void MainWindow::OnCrop()
@@ -672,7 +685,7 @@ void MainWindow::OnEMail()
         // Create a file containing the email address
         QString emailID = QUuid::createUuid().toString().mid(1);
         emailID.chop(1);
-        QFile emailFile(cloudSync.data.emailDirName + "/" + emailID + ".eml");
+        QFile emailFile(cloudSync.emailDirName + "/" + emailID + ".eml");
         emailFile.open(QIODevice::Append);
         QTextStream emailStream (&emailFile);
 
@@ -691,7 +704,7 @@ void MainWindow::OnEMail()
 
             qDebug() << "Copy file" << srcFileName << "to" << destFileName;
 
-            QFile::copy(srcFileName, cloudSync.data.filesDirName + "/" + destFileName);
+            QFile::copy(srcFileName, cloudSync.filesDirName + "/" + destFileName);
             emailStream << destFileName << "\n";
         }
 
@@ -804,13 +817,15 @@ void MainWindow::loadPreviewWindowContents(const QString& dir)
     }
 }
 
-void MainWindow::setVersionLabel(int pics, int emails)
+void MainWindow::updateVersionLabel()
 {
     QString version;
 
+    qDebug() << "Updating version label, emails = " << cloudSync.emailCount() << ", pictures = " << cloudSync.pictureSyncCount();
+
     QTextStream(&version)
         << "Santa Ship Ver 3.0 " << __DATE__ << " " << __TIME__
-        << "      To sync Pictures " << pics << " & Emails " << emails;
+        << "      To sync Pictures " << cloudSync.pictureSyncCount() << " & Emails " << cloudSync.emailCount();
 
     // Load the version and build date / time
     //version = QString("SantaShip Ver 3.0 ") + QString(__DATE__) + QString(" ") + QString(__TIME__);
@@ -969,38 +984,38 @@ void MainWindow::on_actionCloud_Access_triggered(bool checked)
 {
     Q_UNUSED (checked);
     DialogCloudSetup cloudSetup;
-    cloudSetup.setS3Access(cloudSync.data.S3Access);
-    cloudSetup.setS3Secret(cloudSync.data.S3Secret);
-    cloudSetup.setS3Bucket(cloudSync.data.S3Bucket);
-    cloudSetup.setS3URL(cloudSync.data.S3URL);
-    cloudSetup.setEMailFrom(cloudSync.data.emailFrom);
-    cloudSetup.setEMailDomain(cloudSync.data.emailDomain);
-    cloudSetup.setEMailUser(cloudSync.data.emailUser);
-    cloudSetup.setEMailPassword(cloudSync.data.emailPassword);
-    cloudSetup.setEMailServer(cloudSync.data.emailServer);
-    cloudSetup.setEMailPort(cloudSync.data.emailPort);
-    cloudSetup.setEMailTransport(cloudSync.data.emailTransport);
-    cloudSetup.setEMailSubject(cloudSync.data.emailSubject);
-    cloudSetup.setEMailPreamble(cloudSync.data.emailPreamble);
-    cloudSetup.setEMailPostamble(cloudSync.data.emailPostamble);
+    cloudSetup.setS3Access(cloudSync.S3Access);
+    cloudSetup.setS3Secret(cloudSync.S3Secret);
+    cloudSetup.setS3Bucket(cloudSync.S3Bucket);
+    cloudSetup.setS3URL(cloudSync.S3URL);
+    cloudSetup.setEMailFrom(cloudSync.emailFrom);
+    cloudSetup.setEMailDomain(cloudSync.emailDomain);
+    cloudSetup.setEMailUser(cloudSync.emailUser);
+    cloudSetup.setEMailPassword(cloudSync.emailPassword);
+    cloudSetup.setEMailServer(cloudSync.emailServer);
+    cloudSetup.setEMailPort(cloudSync.emailPort);
+    cloudSetup.setEMailTransport(cloudSync.emailTransport);
+    cloudSetup.setEMailSubject(cloudSync.emailSubject);
+    cloudSetup.setEMailPreamble(cloudSync.emailPreamble);
+    cloudSetup.setEMailPostamble(cloudSync.emailPostamble);
 
     int result = cloudSetup.exec();
 
     if (result == QDialog::Accepted) {
-        cloudSync.data.S3Access = cloudSetup.getS3Access();
-        cloudSync.data.S3Secret = cloudSetup.getS3Secret();
-        cloudSync.data.S3Bucket = cloudSetup.getS3Bucket();
-        cloudSync.data.S3URL = cloudSetup.getS3URL();
-        cloudSync.data.emailFrom = cloudSetup.getEMailFrom();
-        cloudSync.data.emailDomain = cloudSetup.getEMailDomain();
-        cloudSync.data.emailUser = cloudSetup.getEMailUser();
-        cloudSync.data.emailPassword = cloudSetup.getEMailPassword();
-        cloudSync.data.emailServer = cloudSetup.getEMailServer();
-        cloudSync.data.emailPort = cloudSetup.getEMailPort();
-        cloudSync.data.emailTransport = cloudSetup.getEMailTransport();
-        cloudSync.data.emailSubject = cloudSetup.getEMailSubject();
-        cloudSync.data.emailPreamble = cloudSetup.getEMailPreamble();
-        cloudSync.data.emailPostamble = cloudSetup.getEMailPostamble();
+        cloudSync.S3Access = cloudSetup.getS3Access();
+        cloudSync.S3Secret = cloudSetup.getS3Secret();
+        cloudSync.S3Bucket = cloudSetup.getS3Bucket();
+        cloudSync.S3URL = cloudSetup.getS3URL();
+        cloudSync.emailFrom = cloudSetup.getEMailFrom();
+        cloudSync.emailDomain = cloudSetup.getEMailDomain();
+        cloudSync.emailUser = cloudSetup.getEMailUser();
+        cloudSync.emailPassword = cloudSetup.getEMailPassword();
+        cloudSync.emailServer = cloudSetup.getEMailServer();
+        cloudSync.emailPort = cloudSetup.getEMailPort();
+        cloudSync.emailTransport = cloudSetup.getEMailTransport();
+        cloudSync.emailSubject = cloudSetup.getEMailSubject();
+        cloudSync.emailPreamble = cloudSetup.getEMailPreamble();
+        cloudSync.emailPostamble = cloudSetup.getEMailPostamble();
     }
 }
 
@@ -1140,21 +1155,21 @@ void MainWindow::writeSettings()
     settings->setValue("PreviewWindow/size", previewWindow->size());
     settings->setValue("PreviewWindow/pos", previewWindow->pos());
 
-    settings->setValue("S3Access", cloudSync.data.S3Access);
-    settings->setValue("S3Secret", cloudSync.data.S3Secret);
-    settings->setValue("S3Bucket", cloudSync.data.S3Bucket);
-    settings->setValue("S3URL", cloudSync.data.S3URL);
+    settings->setValue("S3Access", cloudSync.S3Access);
+    settings->setValue("S3Secret", cloudSync.S3Secret);
+    settings->setValue("S3Bucket", cloudSync.S3Bucket);
+    settings->setValue("S3URL", cloudSync.S3URL);
 
-    settings->setValue("EMailUser", cloudSync.data.emailUser);
-    settings->setValue("EMailFrom", cloudSync.data.emailFrom);
-    settings->setValue("EMailDomain", cloudSync.data.emailDomain);
-    settings->setValue("EMailPassword", cloudSync.data.emailPassword);
-    settings->setValue("EMailServer", cloudSync.data.emailServer);
-    settings->setValue("EMailPort", cloudSync.data.emailPort);
-    settings->setValue("EMailTransport", cloudSync.data.emailTransport);
-    settings->setValue("EMailSubject", cloudSync.data.emailSubject);
-    settings->setValue("EMailPreamble", cloudSync.data.emailPreamble);
-    settings->setValue("EMailPostamble", cloudSync.data.emailPostamble);
+    settings->setValue("EMailUser", cloudSync.emailUser);
+    settings->setValue("EMailFrom", cloudSync.emailFrom);
+    settings->setValue("EMailDomain", cloudSync.emailDomain);
+    settings->setValue("EMailPassword", cloudSync.emailPassword);
+    settings->setValue("EMailServer", cloudSync.emailServer);
+    settings->setValue("EMailPort", cloudSync.emailPort);
+    settings->setValue("EMailTransport", cloudSync.emailTransport);
+    settings->setValue("EMailSubject", cloudSync.emailSubject);
+    settings->setValue("EMailPreamble", cloudSync.emailPreamble);
+    settings->setValue("EMailPostamble", cloudSync.emailPostamble);
 
     settings->setValue("Overlay/index", ui->comboBoxOverlay->currentIndex());
     settings->setValue("Overlay/loc", ui->comboBoxOverlayLocation->currentIndex());
@@ -1242,27 +1257,27 @@ void MainWindow::readSettings()
     ui->actionPreview_Window->setChecked(previewWindow->isVisible());
 
     // Setup the current directory
-    dirName = QDir::homePath() + "/" + DEFAULT_DIR;
-    dirName = settings->value("CurrentDir", dirName).toString();
+    QString defaultDirName = QDir::homePath() + "/" + DEFAULT_DIR;
+    setDirName(settings->value("CurrentDir", defaultDirName).toString());
 //    qDebug() << __FILE__ << __FUNCTION__ << "dirName" << dirName;
     fileModel->setRootPath(dirName);
-    cloudSync.data.filesDirName = dirName + "/.AWS";
-    cloudSync.data.emailDirName = dirName + "/.EMail";
-    QDir filesDir(cloudSync.data.filesDirName);
-    QDir emailDir(cloudSync.data.emailDirName);
+    cloudSync.filesDirName = dirName + "/.AWS";
+    cloudSync.emailDirName = dirName + "/.EMail";
+    QDir filesDir(cloudSync.filesDirName);
+    QDir emailDir(cloudSync.emailDirName);
 
     // Check for and if necessary create the AWS upload directory
     if (!filesDir.exists())
     {
         // EMail folder doesn't exist so create it
-        filesDir.mkpath(cloudSync.data.filesDirName);
+        filesDir.mkpath(cloudSync.filesDirName);
     }
 
     // Check for and if necessary create the EMail directory
     if (!emailDir.exists())
     {
         // EMail folder doesn't exist so create it
-        emailDir.mkpath(cloudSync.data.emailDirName);
+        emailDir.mkpath(cloudSync.emailDirName);
     }
 
     loadOverlays();
@@ -1279,42 +1294,42 @@ void MainWindow::readSettings()
     ui->checkBoxPreview->setChecked(settings->value("PrintPreview", false).toBool());
 //    ui->splitter->setSizes(settings->value("Splits").);
 
-    cloudSync.data.S3Access = settings->value("S3Access").toString();
-    cloudSync.data.S3Secret = settings->value("S3Secret").toString();
-    cloudSync.data.S3Bucket = settings->value("S3Bucket", QString(
+    cloudSync.S3Access = settings->value("S3Access").toString();
+    cloudSync.S3Secret = settings->value("S3Secret").toString();
+    cloudSync.S3Bucket = settings->value("S3Bucket", QString(
         "magicshipphotos"
     )).toString();
-    cloudSync.data.S3URL = settings->value("S3URL", QString(
+    cloudSync.S3URL = settings->value("S3URL", QString(
         "https://s3-us-west-1.amazonaws.com/"
     )).toString();
 
-    cloudSync.data.emailUser = settings->value("EMailUser", QString(
+    cloudSync.emailUser = settings->value("EMailUser", QString(
         "santa@magicshipofchristmas.org"
     )).toString();
-    cloudSync.data.emailFrom = settings->value("EMailFrom", QString(
+    cloudSync.emailFrom = settings->value("EMailFrom", QString(
         "Santa Claus"
     )).toString();
-    cloudSync.data.emailDomain = settings->value("EMailDomain", QString(
+    cloudSync.emailDomain = settings->value("EMailDomain", QString(
         "magicshipofchristmas.org"
     )).toString();
-    cloudSync.data.emailPassword = settings->value("EMailPassword").toString();
-    cloudSync.data.emailServer = settings->value("EMailServer", QString(
+    cloudSync.emailPassword = settings->value("EMailPassword").toString();
+    cloudSync.emailServer = settings->value("EMailServer", QString(
         "mail.magicshipofchristmas.org"
     )).toString();
-    cloudSync.data.emailPort = settings->value("EMailPort",
+    cloudSync.emailPort = settings->value("EMailPort",
         465
     ).toInt();
-    cloudSync.data.emailTransport = settings->value("EMailTransport", QString(
+    cloudSync.emailTransport = settings->value("EMailTransport", QString(
         "SSL"
     )).toString();
-    cloudSync.data.emailSubject = settings->value("EMailSubject", QString(
+    cloudSync.emailSubject = settings->value("EMailSubject", QString(
         "Pictures with Santa on the Magic Ship"
     )).toString();
-    cloudSync.data.emailPreamble = settings->value("EMailPreamble", QString(
+    cloudSync.emailPreamble = settings->value("EMailPreamble", QString(
         "These are your pictures with Santa on the Magic Ship of Christmas.  They will be available for at least 30 days using the links below.\n"
         "\n"
     )).toString();
-    cloudSync.data.emailPostamble = settings->value("EMailPostamble", QString(
+    cloudSync.emailPostamble = settings->value("EMailPostamble", QString(
         "\n"
         "Thank you\n"
         "Santa Claus\n"

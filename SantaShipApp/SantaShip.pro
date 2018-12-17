@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets printsupport
+QT       += core gui widgets printsupport network
 
-CONFIG   += qt debug_and_release
+CONFIG   += qt debug_and_release c++14
 
 TARGET = SantaShip
 TEMPLATE = app
@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     thumbnail.cpp \
     cloudsync.cpp \
     dialogcloudsetup.cpp \
-    emaildialog.cpp
+    emaildialog.cpp \
+    SantaLogger.cpp
 
 HEADERS  += mainwindow.h \
     filethumbnailprovider.h \
@@ -35,7 +36,8 @@ HEADERS  += mainwindow.h \
     thumbnail.h \
     cloudsync.h \
     dialogcloudsetup.h \
-    emaildialog.h
+    emaildialog.h \
+    SantaLogger.h
 
 FORMS    += mainwindow.ui \
     previewwindow.ui \

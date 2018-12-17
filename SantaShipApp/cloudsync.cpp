@@ -1,28 +1,74 @@
 #include "cloudsync.h"
+#include "qts3.h"
+#include "SmtpMime"
 
 #include <QDir>
 #include <QDebug>
-#include "qts3.h"
+#include <QFile>
+#include <QFileInfo>
 
-int cloudSyncFilesWork(cloudSyncData_t* data, QStringList &files)
+CloudSync::CloudSync() :
+  emailPort(0),
+  working(),
+  m_emailCount(0),
+  m_pictureSyncCount(0)
+{
+}
+
+int CloudSync::emailCount()
+{
+    return m_emailCount;
+}
+
+void CloudSync::setEmailCount(int count)
+{
+    if (m_emailCount != count) {
+        m_emailCount = count;
+        emit emailCountChanged(m_emailCount);
+    }
+}
+
+int CloudSync::pictureSyncCount()
+{
+    return m_pictureSyncCount;
+}
+
+void CloudSync::setPictureSyncCount(int count)
+{
+    if (m_pictureSyncCount != count) {
+        m_pictureSyncCount = count;
+        emit pictureSyncCountChanged(m_pictureSyncCount);
+    }
+}
+
+int CloudSync::syncFiles(const QStringList& files)
 {
     int failed = 0;
-    QtS3 s3(data->S3Access,data->S3Secret);
+    QtS3 s3(S3Access, S3Secret);
     QStringList headers;
     headers << "Content-Type: image/jpeg";
 
     for (int i = 0; i < files.size(); i++) {
         qDebug() << "Processing file:" << files.at(i);
-        QFile srcFile(data->filesDirName + "/" + files.at(i));
-        if (srcFile.open(QIODevice::ReadOnly)) {
+        QFile srcFile(filesDirName + "/" + files.at(i));
+        if (S3Bucket == QStringLiteral("FakeBucket")) {
+            // fake bucket, don't actually upload, just delay for a moment and delete the file
+            qDebug() << "Pretending to upload to fake bucket...";
+            sleep(5);
+            qDebug() << "Fake upload successful (duh), deleting";
+            // Should we randomly fail?
+            srcFile.remove();
+            setPictureSyncCount(m_pictureSyncCount - 1);
+        } else if (srcFile.open(QIODevice::ReadOnly)) {
             QByteArray fileData = srcFile.readAll();
             srcFile.close();
-            QtS3Reply<void> putReply = s3.put(data->S3Bucket.toLocal8Bit() ,files.at(i) ,fileData ,headers);
+            QtS3Reply<void> putReply = s3.put(S3Bucket.toLocal8Bit(), files.at(i), fileData, headers);
             if (putReply.isSuccess()) {
                 qDebug() << "Put successful deleting local copy";
                 srcFile.remove();
+                setPictureSyncCount(m_pictureSyncCount - 1);
             } else {
-                qDebug() << "Put failed keep for next time through:" << putReply.anyErrorString();
+                qDebug() << "Put failed, keep for next time through:" << putReply.anyErrorString();
                 failed++;
             }
         } else {
@@ -34,44 +80,68 @@ int cloudSyncFilesWork(cloudSyncData_t* data, QStringList &files)
     return failed;
 }
 
-int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails)
+void CloudSync::archiveEMLFile(const QFile& file)
+{
+    QDir emailDir(emailDirName);
+
+    QFileInfo info(file);
+    QString fileName = info.fileName();
+
+    // skip non-existent files
+    if (!emailDir.exists(fileName)) {
+        qCritical() << "Attempt to archive nonexistent eml file: " << fileName;
+        return;
+    }
+
+    if (!emailDir.exists(".archive")) {
+        emailDir.mkdir(".archive");
+    }
+
+    QDir archiveDir(emailDir.filePath(".archive"));
+    qDebug() << ".archive dir: " << archiveDir;
+    QString archiveName = archiveDir.filePath(fileName);
+    qDebug() << "Archiving eml file " << fileName << " to " << archiveName;
+    emailDir.rename(fileName, archiveName);
+}
+
+int CloudSync::syncEmails(const QStringList& emails)
 {
     int failed = 0;
 
     for (int i = 0; i < emails.size(); i++) {
         qDebug() << "Processing email:" << emails.at(i);
-        QFile file(data->emailDirName + "/" + emails.at(i));
+        QFile file(emailDirName + "/" + emails.at(i));
         if (file.open(QIODevice::ReadOnly)) {
             // First we need to create an SmtpClient object
             // We will use the Gmail's smtp server (smtp.gmail.com, port 465, ssl)
-//            qDebug() << "emailServer" << data->emailServer;
-//            qDebug() << "emailPort" << data->emailPort;
-//            qDebug() << "emailUser" << data->emailUser;
-//            qDebug() << "emailFrom" << data->emailFrom;
-//            qDebug() << "emailDomain" << data->emailDomain;
-//            qDebug() << "emailPassword" << data->emailPassword;
-//            qDebug() << "emailTransport" << data->emailTransport;
+//            qDebug() << "emailServer" << emailServer;
+//            qDebug() << "emailPort" << emailPort;
+//            qDebug() << "emailUser" << emailUser;
+//            qDebug() << "emailFrom" << emailFrom;
+//            qDebug() << "emailDomain" << emailDomain;
+//            qDebug() << "emailPassword" << emailPassword;
+//            qDebug() << "emailTransport" << emailTransport;
 
-            SmtpClient smtp(data->emailServer, data->emailPort, SmtpClient::TcpConnection);
-            if (data->emailTransport == QString("SSL")) {
+            SmtpClient smtp(emailServer, emailPort, SmtpClient::TcpConnection);
+            if (emailTransport == QString("SSL")) {
                 smtp.setConnectionType(SmtpClient::SslConnection);
-            } else if (data->emailTransport == QString("TLS")) {
+            } else if (emailTransport == QString("TLS")) {
                 smtp.setConnectionType(SmtpClient::TlsConnection);
             }
 
             // We need to set the username (your email address) and password
             // for smtp authentification.
 
-            smtp.setUser(data->emailUser);
-            smtp.setPassword(data->emailPassword);
-            smtp.setName(data->emailDomain);
+            smtp.setUser(emailUser);
+            smtp.setPassword(emailPassword);
+            smtp.setName(emailDomain);
             smtp.setAuthMethod(SmtpClient::AuthLogin);
 
             // Now we create a MimeMessage object. This is the email.
 
             MimeMessage message;
 
-            EmailAddress sender(data->emailUser, data->emailFrom);
+            EmailAddress sender(emailUser, emailFrom);
             message.setSender(&sender);
 
             QString rcptTo;
@@ -81,21 +151,21 @@ int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails)
             EmailAddress to(rcptTo, rcptTo);
             message.addRecipient(&to);
 
-            EmailAddress bcc(data->emailUser, data->emailUser);
+            EmailAddress bcc(emailUser, emailUser);
             message.addBcc(&bcc);
 
-            message.setSubject(data->emailSubject);
+            message.setSubject(emailSubject);
 
             // Now add some text to the email.
             // First we create a MimeText object.
 
             QString msgText;
-            msgText += data->emailPreamble;
+            msgText += emailPreamble;
             while (!file.atEnd()) {
                 QString destFileName = file.readLine();
-                msgText += data->S3URL + data->S3Bucket + "/" + destFileName;
+                msgText += S3URL + S3Bucket + "/" + destFileName;
             }
-            msgText += data->emailPostamble;
+            msgText += emailPostamble;
 
             qDebug() << "Message: " << msgText;
             MimeText text(msgText);
@@ -104,66 +174,78 @@ int cloudSyncEmailsWork(cloudSyncData_t* data, QStringList &emails)
             message.addPart(&text);
 
             // Now we can send the mail
+            if (emailDomain == QStringLiteral("fakedomain.com") || emailDomain == QStringLiteral("fakedomain.org")) {
+                // Fake sending email
+                qDebug() << "NOT sending email to FAKE domain";
+                sleep(2);
+                qDebug() << "Finished pretending to send fake email";
+            } else {
+                if (!smtp.connectToHost()) {
+                    qDebug() << "Failed to connect to host!";
+                    failed ++;
+                    break;
+                }
 
-            if (!smtp.connectToHost()) {
-                qDebug() << "Failed to connect to host!" << endl;
-                failed ++;
-                goto abort;
+                if (!smtp.login()) {
+                    qDebug() << "Failed to login!";
+                    failed ++;
+                    break;
+                }
+
+                if (!smtp.sendMail(message)) {
+                    qDebug() << "Failed to send mail!";
+                    failed ++;
+                    break;
+                }
+
+                smtp.quit();
+                qDebug() << "Successfully staged E-Mail";
             }
-
-            if (!smtp.login()) {
-                qDebug() << "Failed to login!" << endl;
-                failed ++;
-                goto abort;
-            }
-
-            if (!smtp.sendMail(message)) {
-                qDebug() << "Failed to send mail!" << endl;
-                failed ++;
-                goto abort;
-            }
-
-            smtp.quit();
-
-            qDebug() << "Successfully staged E-Mail";
             file.close();
-            file.remove();
+            archiveEMLFile(file);
+            setEmailCount(m_emailCount - 1);
         } else {
             qDebug() << "Error opening file" << file.fileName();
             failed ++;
         }
     }
 
-abort:
     return failed;
 }
 
-void cloudSyncWork (cloudSyncData_t* data)
+void CloudSync::work()
 {
-    //qDebug() << "cloudSyncWork";
+    // basically a delayed spin-lock, but thread safe
+    if (working.test_and_set()) return;
 
-    QDir filesDir(data->filesDirName);
-    QDir emailDir(data->emailDirName);
+    qDebug() << "CloudSync::work()";
+
+    QDir filesDir(filesDirName);
+    QStringList fileList = filesDir.entryList(QDir::Files);
+    setPictureSyncCount(fileList.size());
+
+    QDir emailDir(emailDirName);
+    QStringList emailList = emailDir.entryList(QDir::Files);
+    setEmailCount(emailList.size());
 
     // First process any pending images to send to the cloud
-    QStringList files = filesDir.entryList(QDir::Files);
     bool allSunk = true;
-    if (cloudSyncFilesWork(data, files)) allSunk = false;
+    if (syncFiles(fileList)) allSunk = false;
 
     // If all the files are uploaded send any pending E-Mails
-    if (allSunk && !data->emailServer.isEmpty() && !data->emailDomain.isEmpty() && !data->emailUser.isEmpty() && !data->emailFrom.isEmpty() && !data->emailPassword.isEmpty()) {
-        files = emailDir.entryList(QDir::Files);
-        cloudSyncEmailsWork(data, files);
+    if (allSunk && !emailServer.isEmpty() && !emailDomain.isEmpty() && !emailUser.isEmpty() && !emailFrom.isEmpty() && !emailPassword.isEmpty()) {
+        qDebug() << "All pictures synced, sending emails";
+        syncEmails(emailList);
     }
 
-    data->working = false;
+    working.clear();
 }
 
-void cloudSyncThread::run()
+void CloudSync::run()
 {
+    qDebug() << "Starting cloud sync thread...";
     while(true) {
-        cloudSyncWork(&data);
-
+        work();
         sleep(30);
     }
 }
